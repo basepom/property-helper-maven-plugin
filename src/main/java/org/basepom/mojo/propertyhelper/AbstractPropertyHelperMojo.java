@@ -13,12 +13,18 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.File;
+import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
+import javax.annotation.CheckForNull;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -41,11 +47,10 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.pyx4j.log4j.MavenLogAppender;
 
 /**
@@ -89,44 +94,44 @@ public abstract class AbstractPropertyHelperMojo
      * List of the property group ids to activate for a plugin execution.
      */
     @Parameter
-    private String[] activeGroups;
+    private String[] activeGroups = new String [0];
 
     /**
      * List of available property groups. A property group contains one or
      * more property definitions and must be activated with activeGroups.
      */
     @Parameter
-    private PropertyGroup[] propertyGroups;
+    private PropertyGroup[] propertyGroups = new PropertyGroup[0];
 
     /**
      * Number property definitions.
      */
     @Parameter
-    private NumberDefinition[] numbers;
+    private NumberDefinition[] numbers = new NumberDefinition[0];
 
     /**
      * String property definitions.
      */
     @Parameter
-    private StringDefinition[] strings;
+    private StringDefinition[] strings = new StringDefinition[0];
 
     /**
      * Date property definitions.
      */
     @Parameter
-    private DateDefinition[] dates;
+    private DateDefinition[] dates = new DateDefinition[0];
 
     /**
      * Macro definitions.
      */
     @Parameter
-    private MacroDefinition[] macros;
+    private MacroDefinition[] macros = new MacroDefinition[0];
 
     /**
      * Uuid definitions.
      */
     @Parameter
-    private UuidDefinition[] uuids;
+    private UuidDefinition[] uuids = new UuidDefinition[0];
 
     protected final Log LOG = Log.findLog();
 
@@ -169,28 +174,29 @@ public abstract class AbstractPropertyHelperMojo
 
     public MavenProject getProject()
     {
-        Preconditions.checkNotNull(project);
+        checkNotNull(project, "project is null");
         return project;
     }
 
     public Settings getSettings()
     {
-        Preconditions.checkNotNull(settings);
+        checkNotNull(settings, "settings is null");
         return settings;
     }
 
     public File getBasedir()
     {
-        Preconditions.checkNotNull(basedir);
+        checkNotNull(basedir, "basedir is null");
         return basedir;
     }
 
     public PlexusContainer getContainer()
     {
-        Preconditions.checkNotNull(container);
+        checkNotNull(container, "container is null");
         return container;
     }
 
+    @CheckForNull
     public List<NumberField> getNumbers()
     {
         return numberFields;
@@ -233,25 +239,27 @@ public abstract class AbstractPropertyHelperMojo
         }
 
         // Now generate the property groups.
-        final Map<String, Pair<PropertyGroup, List<PropertyElement>>> propertyPairs = Maps.newHashMap();
+        final ImmutableMap.Builder<String, Map.Entry<PropertyGroup, List<PropertyElement>>> builder = ImmutableMap.builder();
 
-        final Set<String> propertyNames = Sets.newHashSet();
+        final Set<String> propertyNames = new HashSet<>();
 
         if (propertyGroups != null) {
             for (final PropertyGroup propertyGroup : propertyGroups) {
                 final List<PropertyElement> propertyFields = PropertyField.createProperties(props, propertyGroup);
-                propertyPairs.put(propertyGroup.getId(), Pair.of(propertyGroup, propertyFields));
+                builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<>(propertyGroup, propertyFields));
             }
         }
 
+        final Map<String, Map.Entry<PropertyGroup, List<PropertyElement>>> propertyPairs = builder.build();
+
         if (activeGroups != null) {
             for (final String activeGroup : activeGroups) {
-                final Pair<PropertyGroup, List<PropertyElement>> propertyElement = propertyPairs.get(activeGroup);
-                Preconditions.checkState(propertyElement != null, "activated group '%s' does not exist", activeGroup);
+                final Map.Entry<PropertyGroup, List<PropertyElement>> propertyElement = propertyPairs.get(activeGroup);
+                checkState(propertyElement != null, "activated group '%s' does not exist", activeGroup);
 
-                final PropertyGroup propertyGroup = propertyElement.getLeft();
+                final PropertyGroup propertyGroup = propertyElement.getKey();
                 if ((propertyGroup.isActiveOnRelease() && !isSnapshot) || (propertyGroup.isActiveOnSnapshot() && isSnapshot)) {
-                    for (final PropertyElement pe : propertyElement.getRight()) {
+                    for (final PropertyElement pe : propertyElement.getValue()) {
                         final Optional<String> value = pe.getPropertyValue();
                         final String propertyName = pe.getPropertyName();
                         IgnoreWarnFail.checkState(propertyGroup.getOnDuplicateProperty(), !propertyNames.contains(propertyName), "property name '" + propertyName + "'");
@@ -261,7 +269,7 @@ public abstract class AbstractPropertyHelperMojo
                     }
                 }
                 else {
-                    LOG.debug("Skipping property group %s: Snapshot: %b, onSnapshot: %b, onRelease: %b", activeGroup, isSnapshot, propertyGroup.isActiveOnSnapshot(), propertyGroup.isActiveOnRelease());
+                    LOG.debug("Skipping property group %s: Snapshot: %b, activeOnSnapshot: %b, activeOnRelease: %b", activeGroup, isSnapshot, propertyGroup.isActiveOnSnapshot(), propertyGroup.isActiveOnRelease());
                 }
             }
         }

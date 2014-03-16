@@ -13,14 +13,13 @@
  */
 package org.basepom.mojo.propertyhelper;
 
-import static java.lang.String.format;
-
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.basepom.mojo.propertyhelper.beans.MacroDefinition;
 import org.basepom.mojo.propertyhelper.macros.MacroType;
 
@@ -39,16 +38,19 @@ public class MacroField implements PropertyElement
                                                 final AbstractPropertyHelperMojo mojo)
         throws IOException
     {
+        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(macroDefinitions, "macroDefinitions is null");
+        checkNotNull(mojo, "mojo is null");
+
         final ImmutableList.Builder<MacroField> result = ImmutableList.builder();
 
-        if (!ArrayUtils.isEmpty(macroDefinitions)) {
-            for (MacroDefinition macroDefinition : macroDefinitions) {
-                macroDefinition.check();
-                final ValueProvider macroValue = propertyCache.getPropertyValue(macroDefinition);
-                final MacroField macroField = new MacroField(macroDefinition, macroValue, mojo);
-                result.add(macroField);
-            }
+        for (MacroDefinition macroDefinition : macroDefinitions) {
+            macroDefinition.check();
+            final ValueProvider macroValue = propertyCache.getPropertyValue(macroDefinition);
+            final MacroField macroField = new MacroField(macroDefinition, macroValue, mojo);
+            result.add(macroField);
         }
+
         return result.build();
     }
 
