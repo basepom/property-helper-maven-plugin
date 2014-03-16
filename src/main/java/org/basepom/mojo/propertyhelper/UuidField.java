@@ -13,15 +13,13 @@
  */
 package org.basepom.mojo.propertyhelper;
 
-import static java.lang.String.format;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.basepom.mojo.propertyhelper.beans.UuidDefinition;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -37,16 +35,18 @@ public class UuidField implements PropertyElement
     public static List<UuidField> createUuids(final PropertyCache propertyCache, final UuidDefinition[] uuidDefinitions)
         throws IOException
     {
+        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(uuidDefinitions, "uuidDefinitions is null");
+
         final ImmutableList.Builder<UuidField> result = ImmutableList.builder();
 
-        if (!ArrayUtils.isEmpty(uuidDefinitions)) {
-            for (UuidDefinition uuidDefinition : uuidDefinitions) {
-                uuidDefinition.check();
-                final ValueProvider uuidValue = propertyCache.getPropertyValue(uuidDefinition);
-                final UuidField uuidField = new UuidField(uuidDefinition, uuidValue);
-                result.add(uuidField);
-            }
+        for (UuidDefinition uuidDefinition : uuidDefinitions) {
+            uuidDefinition.check();
+            final ValueProvider uuidValue = propertyCache.getPropertyValue(uuidDefinition);
+            final UuidField uuidField = new UuidField(uuidDefinition, uuidValue);
+            result.add(uuidField);
         }
+
         return result.build();
     }
 

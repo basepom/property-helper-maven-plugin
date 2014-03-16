@@ -13,13 +13,12 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.basepom.mojo.propertyhelper.beans.IgnoreWarnFail;
 import org.basepom.mojo.propertyhelper.beans.StringDefinition;
 
@@ -35,15 +34,16 @@ public class StringField implements PropertyElement
     public static List<StringField> createStrings(final PropertyCache propertyCache, final StringDefinition[] stringDefinitions)
         throws IOException
     {
+        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(stringDefinitions, "stringDefinitions is null");
+
         final ImmutableList.Builder<StringField> result = ImmutableList.builder();
 
-        if (!ArrayUtils.isEmpty(stringDefinitions)) {
-            for (StringDefinition stringDefinition : stringDefinitions) {
-                stringDefinition.check();
-                final ValueProvider stringValue = propertyCache.getPropertyValue(stringDefinition);
-                final StringField stringField = new StringField(stringDefinition, stringValue);
-                result.add(stringField);
-            }
+        for (StringDefinition stringDefinition : stringDefinitions) {
+            stringDefinition.check();
+            final ValueProvider stringValue = propertyCache.getPropertyValue(stringDefinition);
+            final StringField stringField = new StringField(stringDefinition, stringValue);
+            result.add(stringField);
         }
         return result.build();
     }
@@ -78,7 +78,7 @@ public class StringField implements PropertyElement
         values.addAll(definedValues);
 
         for (String value : values) {
-            if (!StringUtils.isBlank(value) || stringDefinition.isBlankIsValid()) {
+            if (stringDefinition.isBlankIsValid() || (value != null && !value.trim().isEmpty())) {
                 final Optional<String> format = stringDefinition.getFormat();
                 return Optional.fromNullable(format.isPresent() ? format(format.get(), value) : value);
             }

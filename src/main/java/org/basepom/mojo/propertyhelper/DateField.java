@@ -13,10 +13,11 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.basepom.mojo.propertyhelper.beans.DateDefinition;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -34,15 +35,16 @@ public class DateField implements PropertyElement
     public static List<DateField> createDates(final PropertyCache propertyCache, final DateDefinition[] dateDefinitions)
         throws IOException
     {
+        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(dateDefinitions, "dateDefinitions is null");
+
         final ImmutableList.Builder<DateField> result = ImmutableList.builder();
 
-        if (!ArrayUtils.isEmpty(dateDefinitions)) {
-            for (DateDefinition dateDefinition : dateDefinitions) {
-                dateDefinition.check();
-                final ValueProvider dateValue = propertyCache.getPropertyValue(dateDefinition);
-                final DateField dateField = new DateField(dateDefinition, dateValue);
-                result.add(dateField);
-            }
+        for (DateDefinition dateDefinition : dateDefinitions) {
+            dateDefinition.check();
+            final ValueProvider dateValue = propertyCache.getPropertyValue(dateDefinition);
+            final DateField dateField = new DateField(dateDefinition, dateValue);
+            result.add(dateField);
         }
         return result.build();
     }

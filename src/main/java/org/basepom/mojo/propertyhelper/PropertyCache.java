@@ -26,14 +26,12 @@ import java.util.Properties;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.basepom.mojo.propertyhelper.beans.AbstractDefinition;
 import org.basepom.mojo.propertyhelper.beans.IgnoreWarnFailCreate;
 import org.basepom.mojo.propertyhelper.util.Log;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -225,23 +223,32 @@ public class PropertyCache
         @Override
         public boolean equals(final Object other)
         {
-            if (!(other instanceof PropertyCacheEntry)) {
+            if (other == this) {
+                return true;
+            }
+            if (other == null || other.getClass() != this.getClass()) {
                 return false;
             }
-            PropertyCacheEntry castOther = (PropertyCacheEntry) other;
-            return new EqualsBuilder().append(props, castOther.props).append(exists, castOther.exists).append(create, castOther.create).isEquals();
+            PropertyCacheEntry that = (PropertyCacheEntry) other;
+            return Objects.equal(this.props, that.props)
+                            && Objects.equal(this.exists, that.exists)
+                            && Objects.equal(this.create, that.create);
         }
 
         @Override
         public int hashCode()
         {
-            return new HashCodeBuilder().append(props).append(exists).append(create).toHashCode();
+            return Objects.hashCode(props, exists, create);
         }
 
         @Override
         public String toString()
         {
-            return new ToStringBuilder(this).append("props", props).append("exists", exists).append("create", create).toString();
+            return Objects.toStringHelper(this)
+                            .add("props", props)
+                            .add("exists", exists)
+                            .add("create", create)
+                            .toString();
         }
     }
 }

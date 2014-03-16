@@ -13,6 +13,7 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
@@ -21,10 +22,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.basepom.mojo.propertyhelper.beans.NumberDefinition;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
@@ -41,16 +41,18 @@ public class NumberField implements PropertyElement
     public static List<NumberField> createNumbers(final PropertyCache propertyCache, final NumberDefinition [] numberDefinitions)
         throws IOException
     {
+        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(numberDefinitions, "numberDefinitions is null");
+
         final List<NumberField> result = Lists.newArrayList();
 
-        if (!ArrayUtils.isEmpty(numberDefinitions)) {
-            for (NumberDefinition numberDefinition : numberDefinitions) {
-                numberDefinition.check();
-                final ValueProvider numberValue = propertyCache.getPropertyValue(numberDefinition);
-                final NumberField numberField = new NumberField(numberDefinition, numberValue);
-                result.add(numberField);
-            }
+        for (NumberDefinition numberDefinition : numberDefinitions) {
+            numberDefinition.check();
+            final ValueProvider numberValue = propertyCache.getPropertyValue(numberDefinition);
+            final NumberField numberField = new NumberField(numberDefinition, numberValue);
+            result.add(numberField);
         }
+
         return result;
     }
 
@@ -72,7 +74,7 @@ public class NumberField implements PropertyElement
     public Optional<String> getPropertyValue()
     {
         parse();
-        final String value = StringUtils.join(elements, null);
+        final String value = Joiner.on("").join(elements);
         final Optional<String> format = numberDefinition.getFormat();
         return Optional.of(format.isPresent() ? format(format.get(), value) : value);
     }
@@ -126,7 +128,7 @@ public class NumberField implements PropertyElement
         parse();
         if (!numberElements.isEmpty()) {
             elements.set(numberElements.get(numberDefinition.getFieldNumber()), value.toString());
-            valueProvider.setValue(StringUtils.join(elements, null));
+            valueProvider.setValue(Joiner.on("").join(elements));
         }
     }
 
