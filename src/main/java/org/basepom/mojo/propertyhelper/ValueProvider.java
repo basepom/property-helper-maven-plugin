@@ -13,6 +13,8 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Properties;
 
 import com.google.common.base.Optional;
@@ -57,6 +59,7 @@ public interface ValueProvider
         @Override
         public void setValue(final String value)
         {
+            checkNotNull(value, "value is null");
             props.setProperty(propertyName, value);
         }
 

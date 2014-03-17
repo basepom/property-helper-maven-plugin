@@ -75,7 +75,9 @@ public class PropertyCache
             return new ValueProvider.PropertyProvider(props, propName);
         }
         else if (createProperty) {
-            props.setProperty(propName, definition.getInitialValue().orNull());
+            if (definition.getInitialValue().isPresent()) {
+                props.setProperty(propName, definition.getInitialValue().get());
+            }
             return new ValueProvider.PropertyProvider(props, propName);
         }
         else {
