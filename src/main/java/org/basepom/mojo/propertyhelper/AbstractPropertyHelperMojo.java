@@ -230,8 +230,9 @@ public abstract class AbstractPropertyHelperMojo
             props.put(pe.getPropertyName(), value.orNull());
 
             if (pe.isExport()) {
-                project.getProperties().setProperty(pe.getPropertyName(), value.or(""));
-                LOG.debug("Exporting Property name: %s, value: %s", pe.getPropertyName(), value);
+                final String result = value.or("");
+                project.getProperties().setProperty(pe.getPropertyName(), result);
+                LOG.debug("Exporting Property name: %s, value: %s", pe.getPropertyName(), result);
             }
             else {
                 LOG.debug("Property name: %s, value: %s", pe.getPropertyName(), value.or("<null>"));

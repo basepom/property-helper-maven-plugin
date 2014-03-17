@@ -30,13 +30,15 @@ public class TestPropertyGroup
     {
         final Map<String, String> props = ImmutableMap.of("hello", "world");
 
-        PropertyGroup pg = new PropertyGroup("hello", true, true, IgnoreWarnFail.FAIL, IgnoreWarnFail.FAIL, props);
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props);
 
         final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String>emptyMap());
+        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("world", propValue);
     }
 
@@ -45,7 +47,9 @@ public class TestPropertyGroup
     {
         final Map<String, String> props = ImmutableMap.of("hello", "#{world}");
 
-        PropertyGroup pg = new PropertyGroup("hello", true, true, IgnoreWarnFail.FAIL, IgnoreWarnFail.FAIL, props);
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props);
 
         final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
         Assert.assertEquals(1, propNames.size());
@@ -55,18 +59,20 @@ public class TestPropertyGroup
         Assert.assertEquals("pizza", propValue);
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testRenderEmptyFail()
     {
         final Map<String, String> props = ImmutableMap.of("hello", "#{world}");
 
-        PropertyGroup pg = new PropertyGroup("hello", true, true, IgnoreWarnFail.FAIL, IgnoreWarnFail.FAIL, props);
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props);
 
         final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String>emptyMap());
+        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("", propValue);
     }
 
@@ -75,13 +81,16 @@ public class TestPropertyGroup
     {
         final Map<String, String> props = ImmutableMap.of("hello", "nice-#{world}-hat");
 
-        PropertyGroup pg = new PropertyGroup("hello", true, true, IgnoreWarnFail.FAIL, IgnoreWarnFail.IGNORE, props);
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props)
+            .setOnMissingProperty("ignore");
 
         final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String>emptyMap());
+        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("nice--hat", propValue);
     }
 
@@ -90,7 +99,10 @@ public class TestPropertyGroup
     {
         final Map<String, String> props = ImmutableMap.of("hello", "nice-#{foo.bar.world}-hat");
 
-        PropertyGroup pg = new PropertyGroup("hello", true, true, IgnoreWarnFail.FAIL, IgnoreWarnFail.IGNORE, props);
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props)
+            .setOnMissingProperty("ignore");
 
         final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
         Assert.assertEquals(1, propNames.size());

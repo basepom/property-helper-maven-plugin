@@ -30,7 +30,7 @@ public enum IgnoreWarnFail
     public static IgnoreWarnFail forString(final String value)
     {
         Preconditions.checkNotNull(value, "the value can not be null");
-        return valueOf(IgnoreWarnFail.class, value.toUpperCase(Locale.ENGLISH));
+        return Enum.valueOf(IgnoreWarnFail.class, value.toUpperCase(Locale.ENGLISH));
     }
 
     /**

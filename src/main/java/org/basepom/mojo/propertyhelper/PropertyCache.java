@@ -13,6 +13,8 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
 import java.io.File;
@@ -33,7 +35,6 @@ import org.basepom.mojo.propertyhelper.util.Log;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 
@@ -118,6 +119,7 @@ public class PropertyCache
 
             if (!propertyFile.exists()) {
                 propertyCacheEntry = new PropertyCacheEntry(props, false, createFile); // does not exist
+                propFiles.put(propertyFile, propertyCacheEntry);
             }
             else {
                 if (propertyFile.isFile() && propertyFile.canRead()) {
@@ -149,14 +151,14 @@ public class PropertyCache
             final PropertyCacheEntry entry = propFile.getValue();
             final File file = propFile.getKey();
             if (entry.isExists() || entry.isCreate()) {
-                Preconditions.checkNotNull(file, "no file defined, can not persist!");
+                checkNotNull(file, "no file defined, can not persist!");
                 final File oldFile = new File(file.getCanonicalPath() + ".bak");
 
                 if (entry.isExists()) {
-                    Preconditions.checkState(file.exists(), "File %s should exist!", file.getCanonicalPath());
+                    checkState(file.exists(), "File %s should exist!", file.getCanonicalPath());
                     // unlink an old file if necessary
                     if (oldFile.exists()) {
-                        Preconditions.checkState(oldFile.delete(), "Could not delete '%s'", file.getCanonicalPath());
+                        checkState(oldFile.delete(), "Could not delete '%s'", file.getCanonicalPath());
                     }
                 }
                 final File newFile = new File(file.getCanonicalPath() + ".new");
@@ -171,13 +173,14 @@ public class PropertyCache
                 }
 
                 if (file.exists()) {
-                    if (file.renameTo(oldFile)) {
-                        if (!newFile.renameTo(file)) {
-                            LOG.warn("Could not rename '%s' to '%s'!", newFile, file);
-                        }
-                    }
-                    else {
+                    if (!file.renameTo(oldFile)) {
                         LOG.warn("Could not rename '%s' to '%s'!", file, oldFile);
+                    }
+                }
+
+                if (!file.exists()) {
+                    if (!newFile.renameTo(file)) {
+                        LOG.warn("Could not rename '%s' to '%s'!", newFile, file);
                     }
                 }
             }
@@ -196,7 +199,7 @@ public class PropertyCache
                                final boolean exists,
                                final boolean create)
         {
-            Preconditions.checkNotNull(props, "Properties element can not be null!");
+            checkNotNull(props, "Properties element can not be null!");
             this.props = props;
             this.exists = exists;
             this.create = create;

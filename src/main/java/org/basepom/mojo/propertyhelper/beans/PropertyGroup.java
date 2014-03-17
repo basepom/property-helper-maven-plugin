@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
@@ -30,38 +29,20 @@ public class PropertyGroup
     /** Property group id. */
     private String id;
 
-    /** Activate the group if the current project version does not contain SNAPSHOT- */
+    /** Activate the group if the current project version does not contain SNAPSHOT. Field injected by Maven. */
     private boolean activeOnRelease = true;
 
-    /** Activate the group if the current project version contains SNAPSHOT- */
+    /** Activate the group if the current project version contains SNAPSHOT. Field injected by Maven. */
     private boolean activeOnSnapshot = true;
 
-    /** Action if this property group defines a duplicate property. */
-    private IgnoreWarnFail onDuplicateProperty = IgnoreWarnFail.FAIL;
+    /** Action if this property group defines a duplicate property. Field injected by Maven. */
+    private String onDuplicateProperty = "fail";
 
-    /** Action if any property from that group could not be defined. */
-    private IgnoreWarnFail onMissingProperty = IgnoreWarnFail.FAIL;
+    /** Action if any property from that group could not be defined. Field injected by Maven. */
+    private String onMissingProperty = "fail";
 
     /** Property definitions in this group. */
     private Map<String, String> properties = ImmutableMap.of();
-
-    @VisibleForTesting
-    PropertyGroup(final String id,
-                  final boolean activeOnRelease,
-                  final boolean activeOnSnapshot,
-                  final IgnoreWarnFail onDuplicateProperty,
-                  final IgnoreWarnFail onMissingProperty,
-                  final Map<String, String> properties)
-    {
-        this();
-
-        this.id = id;
-        this.activeOnRelease = activeOnRelease;
-        this.activeOnSnapshot = activeOnSnapshot;
-        this.onDuplicateProperty = checkNotNull(onDuplicateProperty, "onDuplicateProperty is null");
-        this.onMissingProperty = checkNotNull(onMissingProperty, "onMissingProperty is null");
-        this.properties = ImmutableMap.copyOf(checkNotNull(properties, "properties is null"));
-    }
 
     public PropertyGroup()
     {
@@ -72,9 +53,10 @@ public class PropertyGroup
         return id;
     }
 
-    public void setId(String id)
+    public PropertyGroup setId(String id)
     {
         this.id = id;
+        return this;
     }
 
     public boolean isActiveOnRelease()
@@ -82,9 +64,10 @@ public class PropertyGroup
         return activeOnRelease;
     }
 
-    public void setActiveOnRelease(final boolean activeOnRelease)
+    public PropertyGroup setActiveOnRelease(final boolean activeOnRelease)
     {
         this.activeOnRelease = activeOnRelease;
+        return this;
     }
 
     public boolean isActiveOnSnapshot()
@@ -92,31 +75,34 @@ public class PropertyGroup
         return activeOnSnapshot;
     }
 
-    public void setActiveOnSnapshot(final boolean activeOnSnapshot)
+    public PropertyGroup setActiveOnSnapshot(final boolean activeOnSnapshot)
     {
         this.activeOnSnapshot = activeOnSnapshot;
+        return this;
     }
 
     public IgnoreWarnFail getOnDuplicateProperty()
     {
-        return onDuplicateProperty;
+        return IgnoreWarnFail.forString(onDuplicateProperty);
     }
 
-    public void setOnDuplicateProperty(final String onDuplicateProperty)
+    public PropertyGroup setOnDuplicateProperty(final String onDuplicateProperty)
     {
-        checkNotNull(onDuplicateProperty, "onDuplicateProperty is null");
-        this.onDuplicateProperty = IgnoreWarnFail.forString(onDuplicateProperty);
+        IgnoreWarnFail.forString(onDuplicateProperty);
+        this.onDuplicateProperty = onDuplicateProperty;
+        return this;
     }
 
     public IgnoreWarnFail getOnMissingProperty()
     {
-        return onMissingProperty;
+        return IgnoreWarnFail.forString(onMissingProperty);
     }
 
-    public void setOnMissingProperty(final String onMissingProperty)
+    public PropertyGroup setOnMissingProperty(final String onMissingProperty)
     {
-        checkNotNull(onMissingProperty, "onMissingProperty is null");
-        this.onMissingProperty = IgnoreWarnFail.forString(onMissingProperty);
+        IgnoreWarnFail.forString(onMissingProperty);
+        this.onMissingProperty = onMissingProperty;
+        return this;
     }
 
     public Map<String, String> getProperties()
@@ -124,9 +110,16 @@ public class PropertyGroup
         return properties;
     }
 
-    public void setProperties(final Properties properties)
+    public PropertyGroup setProperties(final Properties properties)
     {
         this.properties = ImmutableMap.copyOf(Maps.fromProperties(checkNotNull(properties, "properties is null")));
+        return this;
+    }
+
+    public PropertyGroup setProperties(final Map<String, String> properties)
+    {
+        this.properties = ImmutableMap.copyOf(checkNotNull(properties, "properties is null"));
+        return this;
     }
 
     public void check()

@@ -96,7 +96,9 @@ public class TestUuidField
 
         f1.check();
 
-        final UuidField uf1 = new UuidField(f1, ValueProvider.NULL_PROVIDER, uuid);
+        final ValueProvider provider = new ValueProvider.StaticValueProvider();
+        provider.setValue(uuid.toString());
+        final UuidField uf1 = new UuidField(f1, provider);
         Assert.assertEquals(uuid.toString(), uf1.getPropertyValue().get());
     }
 

@@ -22,13 +22,11 @@ import java.util.UUID;
 
 import org.basepom.mojo.propertyhelper.beans.UuidDefinition;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 public class UuidField implements PropertyElement
 {
-    private final UUID defaultValue;
     private final UuidDefinition uuidDefinition;
     private final ValueProvider valueProvider;
 
@@ -52,13 +50,6 @@ public class UuidField implements PropertyElement
 
     public UuidField(final UuidDefinition uuidDefinition, final ValueProvider valueProvider)
     {
-        this(uuidDefinition, valueProvider, UUID.randomUUID());
-    }
-
-    @VisibleForTesting
-    UuidField(final UuidDefinition uuidDefinition, final ValueProvider valueProvider, final UUID defaultValue)
-    {
-        this.defaultValue = checkNotNull(defaultValue, "defaultValue is null");
         this.uuidDefinition = checkNotNull(uuidDefinition, "uuidDefinition is null");
         this.valueProvider = checkNotNull(valueProvider, "valueProvider is null");
     }
@@ -73,7 +64,7 @@ public class UuidField implements PropertyElement
     public Optional<String> getPropertyValue()
     {
         // Only add the value from the provider if it is not null.
-        UUID result = defaultValue;
+        UUID result = null;
         final Optional<String> propValue = valueProvider.getValue();
 
         if (propValue.isPresent()) {

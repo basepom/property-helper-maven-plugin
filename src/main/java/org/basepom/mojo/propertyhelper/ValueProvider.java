@@ -45,6 +45,27 @@ public interface ValueProvider
         }
     }
 
+    static class StaticValueProvider implements ValueProvider
+    {
+        private String value;
+
+        StaticValueProvider()
+        {
+        }
+
+        @Override
+        public void setValue(final String value)
+        {
+            this.value = value;
+        }
+
+        @Override
+        public Optional<String> getValue()
+        {
+            return Optional.fromNullable(value);
+        }
+    }
+
     static class PropertyProvider implements ValueProvider
     {
         private final Properties props;

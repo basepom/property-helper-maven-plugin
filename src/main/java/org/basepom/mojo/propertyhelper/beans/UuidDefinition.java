@@ -40,4 +40,11 @@ public class UuidDefinition extends AbstractDefinition<UuidDefinition>
         this.value = checkNotNull(value, "value is null");
         return this;
     }
+
+    @Override
+    public Optional<String> getInitialValue()
+    {
+        final Optional<String> initialValue = super.getInitialValue();
+        return initialValue.isPresent() ? initialValue : Optional.of(UUID.randomUUID().toString());
+    }
 }
