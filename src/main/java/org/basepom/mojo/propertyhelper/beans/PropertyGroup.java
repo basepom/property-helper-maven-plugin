@@ -41,8 +41,8 @@ public class PropertyGroup
     /** Action if any property from that group could not be defined. Field injected by Maven. */
     private String onMissingProperty = "fail";
 
-    /** Property definitions in this group. */
-    private Map<String, String> properties = ImmutableMap.of();
+    /** Property definitions in this group. Field injected by Maven. */
+    private Properties properties = new Properties();
 
     public PropertyGroup()
     {
@@ -107,18 +107,23 @@ public class PropertyGroup
 
     public Map<String, String> getProperties()
     {
-        return properties;
+        return ImmutableMap.copyOf(Maps.fromProperties(properties));
     }
 
     public PropertyGroup setProperties(final Properties properties)
     {
-        this.properties = ImmutableMap.copyOf(Maps.fromProperties(checkNotNull(properties, "properties is null")));
+        this.properties = checkNotNull(properties, "properties is null");
         return this;
     }
 
     public PropertyGroup setProperties(final Map<String, String> properties)
     {
-        this.properties = ImmutableMap.copyOf(checkNotNull(properties, "properties is null"));
+        checkNotNull(properties, "properties is null");
+        this.properties = new Properties();
+
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+            this.properties.setProperty(entry.getKey(), entry.getValue());
+        }
         return this;
     }
 
@@ -137,7 +142,7 @@ public class PropertyGroup
             return "";
         }
 
-        String propertyValue = properties.get(propertyName);
+        String propertyValue = properties.getProperty(propertyName);
 
         for (Map.Entry<String, String> entry : propElements.entrySet()) {
             final String key = "#{" + entry.getKey() + "}";

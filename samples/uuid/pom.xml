@@ -35,7 +35,7 @@
             <plugin>
                 <groupId>org.basepom.maven</groupId>
                 <artifactId>property-helper-maven-plugin</artifactId>
-                <version>1.1</version>
+                <version>1.2-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <id>standard</id>
