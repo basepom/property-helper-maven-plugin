@@ -70,12 +70,19 @@ public class UuidField implements PropertyElement
         if (propValue.isPresent()) {
             result = UUID.fromString(propValue.get());
         }
-        else {
+
+        if (result == null) {
             final Optional<UUID> definedValue = uuidDefinition.getValue();
             if (definedValue.isPresent()) {
                 result = definedValue.get();
             }
         }
+
+        if (result == null) {
+            result = UUID.randomUUID();
+        }
+
+        valueProvider.setValue(result.toString());
 
         final Optional<String> format = uuidDefinition.getFormat();
         return Optional.of(format.isPresent() ? format(format.get(), result) : result.toString());

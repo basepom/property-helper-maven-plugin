@@ -18,14 +18,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+
 import org.basepom.mojo.propertyhelper.beans.DateDefinition;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 
 public class DateField implements PropertyElement
 {
@@ -68,37 +68,41 @@ public class DateField implements PropertyElement
                         ? DateTimeZone.forID(dateDefinition.getTimezone().get())
                         : DateTimeZone.getDefault();
 
-        Optional<DateTime> date = getDateTime(valueProvider.getValue(), timeZone);
+        DateTime date = getDateTime(valueProvider.getValue(), timeZone);
 
-        if (!date.isPresent() && dateDefinition.getValue().isPresent()) {
-            date = Optional.of(new DateTime(dateDefinition.getValue().get(), timeZone));
+        if (date == null && dateDefinition.getValue().isPresent()) {
+            date = new DateTime(dateDefinition.getValue().get(), timeZone);
         }
 
-        if (!date.isPresent()) {
-            date = Optional.of(new DateTime(timeZone));
+        if (date == null) {
+            date = new DateTime(timeZone);
         }
 
         final Optional<String> format = dateDefinition.getFormat();
 
+        final String result;
         if (format.isPresent()) {
             final DateTimeFormatter formatter = DateTimeFormat.forPattern(format.get());
-            return Optional.of(formatter.print(date.get()));
+            result = formatter.print(date);
         }
         else {
-            return Optional.of(date.get().toString());
+            result = date.toString();
         }
+
+        valueProvider.setValue(result);
+        return Optional.of(result);
     }
 
-    private Optional<DateTime> getDateTime(final Optional<String> value, final DateTimeZone timeZone)
+    private DateTime getDateTime(final Optional<String> value, final DateTimeZone timeZone)
     {
         if (!value.isPresent()) {
-            return Optional.absent();
+            return null;
         }
         try {
-            return Optional.of(new DateTime(Long.parseLong(value.get()), timeZone));
+            return new DateTime(Long.parseLong(value.get()), timeZone);
         }
         catch (NumberFormatException nfe) {
-            return Optional.of(new DateTime(value.get(), timeZone));
+            return new DateTime(value.get(), timeZone);
         }
     }
 
