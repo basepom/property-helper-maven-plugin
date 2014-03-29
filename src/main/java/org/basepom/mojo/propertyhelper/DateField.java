@@ -32,17 +32,17 @@ public class DateField implements PropertyElement
     private final DateDefinition dateDefinition;
     private final ValueProvider valueProvider;
 
-    public static List<DateField> createDates(final PropertyCache propertyCache, final DateDefinition[] dateDefinitions)
+    public static List<DateField> createDates(final ValueCache valueCache, final DateDefinition[] dateDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(dateDefinitions, "dateDefinitions is null");
 
         final ImmutableList.Builder<DateField> result = ImmutableList.builder();
 
         for (DateDefinition dateDefinition : dateDefinitions) {
             dateDefinition.check();
-            final ValueProvider dateValue = propertyCache.getPropertyValue(dateDefinition);
+            final ValueProvider dateValue = valueCache.getValueProvider(dateDefinition);
             final DateField dateField = new DateField(dateDefinition, dateValue);
             result.add(dateField);
         }

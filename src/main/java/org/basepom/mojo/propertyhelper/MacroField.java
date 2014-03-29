@@ -33,12 +33,12 @@ public class MacroField implements PropertyElement
     private final ValueProvider valueProvider;
     private final AbstractPropertyHelperMojo mojo;
 
-    public static List<MacroField> createMacros(final PropertyCache propertyCache,
+    public static List<MacroField> createMacros(final ValueCache valueCache,
                                                 final MacroDefinition[] macroDefinitions,
                                                 final AbstractPropertyHelperMojo mojo)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(macroDefinitions, "macroDefinitions is null");
         checkNotNull(mojo, "mojo is null");
 
@@ -46,7 +46,7 @@ public class MacroField implements PropertyElement
 
         for (MacroDefinition macroDefinition : macroDefinitions) {
             macroDefinition.check();
-            final ValueProvider macroValue = propertyCache.getPropertyValue(macroDefinition);
+            final ValueProvider macroValue = valueCache.getValueProvider(macroDefinition);
             final MacroField macroField = new MacroField(macroDefinition, macroValue, mojo);
             result.add(macroField);
         }

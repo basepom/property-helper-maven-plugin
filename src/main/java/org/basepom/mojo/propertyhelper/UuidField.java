@@ -30,17 +30,17 @@ public class UuidField implements PropertyElement
     private final UuidDefinition uuidDefinition;
     private final ValueProvider valueProvider;
 
-    public static List<UuidField> createUuids(final PropertyCache propertyCache, final UuidDefinition[] uuidDefinitions)
+    public static List<UuidField> createUuids(final ValueCache valueCache, final UuidDefinition[] uuidDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(uuidDefinitions, "uuidDefinitions is null");
 
         final ImmutableList.Builder<UuidField> result = ImmutableList.builder();
 
         for (UuidDefinition uuidDefinition : uuidDefinitions) {
             uuidDefinition.check();
-            final ValueProvider uuidValue = propertyCache.getPropertyValue(uuidDefinition);
+            final ValueProvider uuidValue = valueCache.getValueProvider(uuidDefinition);
             final UuidField uuidField = new UuidField(uuidDefinition, uuidValue);
             result.add(uuidField);
         }

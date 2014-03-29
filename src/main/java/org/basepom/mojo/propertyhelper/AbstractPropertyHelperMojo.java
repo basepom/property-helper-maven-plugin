@@ -135,8 +135,8 @@ public abstract class AbstractPropertyHelperMojo
 
     protected final Log LOG = Log.findLog();
 
-    protected final PropertyCache propertyCache = new PropertyCache();
-    private final Map<String, String> props = Maps.newHashMap();
+    protected final ValueCache valueCache = new ValueCache();
+    private final Map<String, String> values = Maps.newHashMap();
 
     private List<NumberField> numberFields = null;
 
@@ -218,16 +218,16 @@ public abstract class AbstractPropertyHelperMojo
     {
         final ImmutableList.Builder<PropertyElement> propertyElements = ImmutableList.builder();
 
-        numberFields = NumberField.createNumbers(propertyCache, numbers);
+        numberFields = NumberField.createNumbers(valueCache, numbers);
         propertyElements.addAll(numberFields);
-        propertyElements.addAll(StringField.createStrings(propertyCache, strings));
-        propertyElements.addAll(DateField.createDates(propertyCache, dates));
-        propertyElements.addAll(MacroField.createMacros(propertyCache, macros, this));
-        propertyElements.addAll(UuidField.createUuids(propertyCache, uuids));
+        propertyElements.addAll(StringField.createStrings(valueCache, strings));
+        propertyElements.addAll(DateField.createDates(valueCache, dates));
+        propertyElements.addAll(MacroField.createMacros(valueCache, macros, this));
+        propertyElements.addAll(UuidField.createUuids(valueCache, uuids));
 
         for (final PropertyElement pe : propertyElements.build()) {
             final Optional<String> value = pe.getPropertyValue();
-            props.put(pe.getPropertyName(), value.orNull());
+            values.put(pe.getPropertyName(), value.orNull());
 
             if (pe.isExport()) {
                 final String result = value.or("");
@@ -246,7 +246,7 @@ public abstract class AbstractPropertyHelperMojo
 
         if (propertyGroups != null) {
             for (final PropertyGroup propertyGroup : propertyGroups) {
-                final List<PropertyElement> propertyFields = PropertyField.createProperties(props, propertyGroup);
+                final List<PropertyElement> propertyFields = PropertyField.createProperties(values, propertyGroup);
                 builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<>(propertyGroup, propertyFields));
             }
         }

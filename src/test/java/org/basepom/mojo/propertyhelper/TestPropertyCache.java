@@ -20,7 +20,7 @@ import java.util.Properties;
 
 import com.google.common.io.Closer;
 
-import org.basepom.mojo.propertyhelper.PropertyCache;
+import org.basepom.mojo.propertyhelper.ValueCache;
 import org.basepom.mojo.propertyhelper.ValueProvider;
 import org.basepom.mojo.propertyhelper.beans.NumberDefinition;
 import org.junit.After;
@@ -34,7 +34,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @AllowLocalFileAccess(paths= {"*"})
 public class TestPropertyCache
 {
-    private PropertyCache pc = null;
+    private ValueCache pc = null;
     private File propFile = null;
     private FileWriter writer = null;
     private final Properties props = new Properties();
@@ -45,7 +45,7 @@ public class TestPropertyCache
             throws IOException
     {
         Assert.assertNull(pc);
-        pc = new PropertyCache();
+        pc = new ValueCache();
 
         Assert.assertNull(propFile);
         propFile = File.createTempFile("test", null);
@@ -71,7 +71,7 @@ public class TestPropertyCache
     {
         final NumberDefinition ephemeral = new NumberDefinition().setId("hello");
         ephemeral.check();
-        final ValueProvider valueProvider = pc.getPropertyValue(ephemeral);
+        final ValueProvider valueProvider = pc.getValueProvider(ephemeral);
         Assert.assertEquals(ephemeral.getInitialValue(), valueProvider.getValue());
     }
 
@@ -86,7 +86,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("IGNORE")
                 .setPropertyFile(new File("/does/not/exist"));
         fileBacked.check();
-        pc.getPropertyValue(fileBacked);
+        pc.getValueProvider(fileBacked);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("CREATE")
                 .setPropertyFile(propFile);
         fileBacked.check();
-        final ValueProvider valueProvider = pc.getPropertyValue(fileBacked);
+        final ValueProvider valueProvider = pc.getValueProvider(fileBacked);
         Assert.assertEquals(fileBacked.getInitialValue(), valueProvider.getValue());
     }
 
@@ -121,7 +121,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("IGNORE")
                 .setPropertyFile(propFile);
         fileBacked.check();
-        final ValueProvider valueProvider = pc.getPropertyValue(fileBacked);
+        final ValueProvider valueProvider = pc.getValueProvider(fileBacked);
         Assert.assertFalse(valueProvider.getValue().isPresent());
     }
 
@@ -141,7 +141,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("FAIL")
                 .setPropertyFile(propFile);
         fileBacked.check();
-        pc.getPropertyValue(fileBacked);
+        pc.getValueProvider(fileBacked);
     }
 
     public void testLoadProperty()
@@ -162,7 +162,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("FAIL")
                 .setPropertyFile(propFile);
         fileBacked.check();
-        final ValueProvider valueProvider = pc.getPropertyValue(fileBacked);
+        final ValueProvider valueProvider = pc.getValueProvider(fileBacked);
         Assert.assertEquals(propValue, valueProvider.getValue());
     }
 
@@ -184,7 +184,7 @@ public class TestPropertyCache
                 .setOnMissingProperty("CREATE")
                 .setPropertyFile(propFile);
         fileBacked.check();
-        final ValueProvider valueProvider = pc.getPropertyValue(fileBacked);
+        final ValueProvider valueProvider = pc.getValueProvider(fileBacked);
         Assert.assertEquals(propValue, valueProvider.getValue());
     }
 
@@ -213,9 +213,9 @@ public class TestPropertyCache
 
         n1.check();
         n2.check();
-        Assert.assertEquals("hello", pc.getPropertyValue(n1).getValue());
-        Assert.assertEquals("world", pc.getPropertyValue(n2).getValue());
+        Assert.assertEquals("hello", pc.getValueProvider(n1).getValue());
+        Assert.assertEquals("world", pc.getValueProvider(n2).getValue());
 
-        Assert.assertSame(pc.getProperties(n1), pc.getProperties(n2));
+        Assert.assertSame(pc.getValues(n1), pc.getValues(n2));
     }
 }

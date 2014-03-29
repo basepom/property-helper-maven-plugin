@@ -15,11 +15,24 @@ package org.basepom.mojo.propertyhelper;
 
 import com.google.common.base.Optional;
 
+/**
+ * Defines a property element.
+ */
 public interface PropertyElement
 {
+    /**
+     * The name of the property element.
+     */
     String getPropertyName();
 
+    /**
+     * The value of the property. {@link Optional#absent()} can be returned if the
+     * value is not defined.
+     */
     Optional<String> getPropertyValue() throws Exception;
 
+    /**
+     * True if the value of this element should be exposed as a maven property.
+     */
     boolean isExport();
 }

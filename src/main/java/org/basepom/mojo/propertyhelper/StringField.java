@@ -31,17 +31,17 @@ public class StringField implements PropertyElement
     private final StringDefinition stringDefinition;
     private final ValueProvider valueProvider;
 
-    public static List<StringField> createStrings(final PropertyCache propertyCache, final StringDefinition[] stringDefinitions)
+    public static List<StringField> createStrings(final ValueCache valueCache, final StringDefinition[] stringDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(stringDefinitions, "stringDefinitions is null");
 
         final ImmutableList.Builder<StringField> result = ImmutableList.builder();
 
         for (StringDefinition stringDefinition : stringDefinitions) {
             stringDefinition.check();
-            final ValueProvider stringValue = propertyCache.getPropertyValue(stringDefinition);
+            final ValueProvider stringValue = valueCache.getValueProvider(stringDefinition);
             final StringField stringField = new StringField(stringDefinition, stringValue);
             result.add(stringField);
         }

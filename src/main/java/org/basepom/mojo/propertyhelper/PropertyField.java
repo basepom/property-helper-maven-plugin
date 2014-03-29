@@ -30,14 +30,14 @@ public class PropertyField implements PropertyElement
     private final String propertyName;
     private final String propertyValue;
 
-    public static List<PropertyElement> createProperties(final Map<String, String> props, final PropertyGroup propertyGroup)
+    public static List<PropertyElement> createProperties(final Map<String, String> values, final PropertyGroup propertyGroup)
         throws IOException
     {
         final ImmutableList.Builder<PropertyElement> result = ImmutableList.builder();
 
         for (Iterator<String> it = propertyGroup.getPropertyNames(); it.hasNext(); ) {
             final String name = it.next();
-            final String value = propertyGroup.getPropertyValue(name, props);
+            final String value = propertyGroup.getPropertyValue(name, values);
             result.add(new PropertyField(name, value));
         }
         return result.build();

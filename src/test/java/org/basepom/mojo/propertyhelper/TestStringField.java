@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 public class TestStringField
@@ -210,8 +211,7 @@ public class TestStringField
 
         f1.check();
 
-        final PropertyCache propertyCache = new PropertyCache();
-        final ValueProvider provider = propertyCache.findCurrentValue(new Properties(), f1);
+        final ValueProvider provider = ValueCache.findCurrentValueProvider(ImmutableMap.<String, String>of(), f1);
 
         final StringField sf1 = new StringField(f1, provider);
         Assert.assertFalse(sf1.getPropertyValue().isPresent());
@@ -226,10 +226,8 @@ public class TestStringField
 
         f1.check();
 
-        final PropertyCache propertyCache = new PropertyCache();
-        final Properties props = new Properties();
-        props.setProperty("hello", "");
-        final ValueProvider provider = propertyCache.findCurrentValue(props, f1);
+        final ImmutableMap<String, String> props = ImmutableMap.of("hello", "");
+        final ValueProvider provider = ValueCache.findCurrentValueProvider(props, f1);
 
         final StringField sf1 = new StringField(f1, provider);
         Assert.assertEquals("", sf1.getPropertyValue().get());

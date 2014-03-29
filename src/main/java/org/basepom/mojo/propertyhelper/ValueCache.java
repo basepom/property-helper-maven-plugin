@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -35,51 +36,53 @@ import org.basepom.mojo.propertyhelper.util.Log;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 
-public class PropertyCache
+public class ValueCache
 {
     private static final Log LOG = Log.findLog();
 
-    /** Cache for properties files loaded from disk */
-    private Map<File, PropertyCacheEntry> propFiles = Maps.newHashMap();
+    /** Cache for values files loaded from disk */
+    private Map<File, ValueCacheEntry> valueFiles = Maps.newHashMap();
 
-    private final Properties ephemeralProperties = new Properties();
+    private final Map<String, String> ephemeralValues = new HashMap<>();
 
-    public ValueProvider getPropertyValue(final AbstractDefinition<?> definition)
+    public ValueProvider getValueProvider(final AbstractDefinition<?> definition)
         throws IOException
     {
-        final Properties props = getProperties(definition);
-        if (props == null) {
-            final String propName = definition.getPropertyName();
+        final Optional<Map<String, String>> values = getValues(definition);
+        if (!values.isPresent()) {
+            final String name = definition.getPropertyName();
             final Optional<String> value = definition.getInitialValue();
             if (value.isPresent()) {
-                ephemeralProperties.setProperty(propName, value.get());
+                ephemeralValues.put(name, value.get());
             }
-            return new ValueProvider.PropertyProvider(ephemeralProperties, propName);
+            return new ValueProvider.MapValueProvider(ephemeralValues, name);
         }
         else {
-            return findCurrentValue(props, definition);
+            return ValueCache.findCurrentValueProvider(values.get(), definition);
         }
     }
 
     @VisibleForTesting
-    ValueProvider findCurrentValue(final Properties props, final AbstractDefinition<?> definition)
+    static ValueProvider findCurrentValueProvider(final Map<String, String> values, final AbstractDefinition<?> definition)
     {
-        final String propName = definition.getPropertyName();
-        final boolean hasProperty = props.containsKey(propName);
+        checkNotNull(values, "values is null");
+        final String name = definition.getPropertyName();
+        final boolean hasValue = values.containsKey(name);
 
-        final boolean createProperty = IgnoreWarnFailCreate.checkState(definition.getOnMissingProperty(), hasProperty, propName);
+        final boolean createProperty = IgnoreWarnFailCreate.checkState(definition.getOnMissingProperty(), hasValue, name);
 
-        if (hasProperty) {
-            return new ValueProvider.PropertyProvider(props, propName);
+        if (hasValue) {
+            return new ValueProvider.MapValueProvider(values, name);
         }
         else if (createProperty) {
             if (definition.getInitialValue().isPresent()) {
-                props.setProperty(propName, definition.getInitialValue().get());
+                values.put(name, definition.getInitialValue().get());
             }
-            return new ValueProvider.PropertyProvider(props, propName);
+            return new ValueProvider.MapValueProvider(values, name);
         }
         else {
             return ValueProvider.NULL_PROVIDER;
@@ -87,75 +90,77 @@ public class PropertyCache
     }
 
     @VisibleForTesting
-    Properties getProperties(final AbstractDefinition<?> definition)
+    Optional<Map<String, String>> getValues(final AbstractDefinition<?> definition)
         throws IOException
     {
-        final Optional<File> definitionPropertyFile = definition.getPropertyFile();
+        final Optional<File> definitionFile = definition.getPropertyFile();
 
         // Ephemeral, so return null.
-        if (!definitionPropertyFile.isPresent()) {
-            return null;
+        if (!definitionFile.isPresent()) {
+            return Optional.absent();
         }
 
-        PropertyCacheEntry propertyCacheEntry;
-        final File propertyFile = definitionPropertyFile.get().getCanonicalFile();
+        ValueCacheEntry cacheEntry;
+        final File canonicalFile = definitionFile.get().getCanonicalFile();
 
         // Throws an exception if the file must exist and does not.
-        final boolean createFile = IgnoreWarnFailCreate.checkState(definition.getOnMissingFile(), propertyFile.exists(), definitionPropertyFile.get().getCanonicalPath());
+        final boolean createFile = IgnoreWarnFailCreate.checkState(definition.getOnMissingFile(), canonicalFile.exists(), definitionFile.get().getCanonicalPath());
 
-        propertyCacheEntry = propFiles.get(propertyFile);
+        cacheEntry = valueFiles.get(canonicalFile);
 
-        if (propertyCacheEntry != null) {
+        if (cacheEntry != null) {
             // If there is a cache hit, something either has loaded the file
             // or another property has already put in a creation order.
             // Make sure that if this number has a creation order it is obeyed.
             if (createFile) {
-                propertyCacheEntry.doCreate();
+                cacheEntry.doCreate();
             }
         }
         else {
             // Try loading or creating properties.
             final Properties props = new Properties();
 
-            if (!propertyFile.exists()) {
-                propertyCacheEntry = new PropertyCacheEntry(props, false, createFile); // does not exist
-                propFiles.put(propertyFile, propertyCacheEntry);
+            if (!canonicalFile.exists()) {
+                cacheEntry = new ValueCacheEntry(props, false, createFile); // does not exist
+                valueFiles.put(canonicalFile, cacheEntry);
             }
             else {
-                if (propertyFile.isFile() && propertyFile.canRead()) {
+                if (canonicalFile.isFile() && canonicalFile.canRead()) {
                     final Closer closer = Closer.create();
-                    InputStream stream = null;
                     try {
-                        stream = closer.register(new FileInputStream(propertyFile));
+                        final InputStream stream = closer.register(new FileInputStream(canonicalFile));
                         props.load(stream);
-                        propertyCacheEntry = new PropertyCacheEntry(props, true, createFile);
-                        propFiles.put(propertyFile, propertyCacheEntry);
+                        cacheEntry = new ValueCacheEntry(props, true, createFile);
+                        valueFiles.put(canonicalFile, cacheEntry);
                     }
                     finally {
                         closer.close();
                     }
                 }
                 else {
-                    throw new IllegalStateException(format("Can not load %s, not a file!", definitionPropertyFile.get().getCanonicalPath()));
+                    throw new IllegalStateException(format("Can not load %s, not a file!", definitionFile.get().getCanonicalPath()));
                 }
             }
         }
 
-        return propertyCacheEntry.getProps();
+        return Optional.of(cacheEntry.getValues());
     }
 
     public void persist() throws IOException
     {
-        for (final Map.Entry<File, PropertyCacheEntry> propFile : propFiles.entrySet())
+        for (final Map.Entry<File, ValueCacheEntry> entries : valueFiles.entrySet())
         {
-            final PropertyCacheEntry entry = propFile.getValue();
-            final File file = propFile.getKey();
+            final ValueCacheEntry entry = entries.getValue();
+            if (!entry.isDirty()) {
+                continue;
+            }
+            final File file = entries.getKey();
             if (entry.isExists() || entry.isCreate()) {
                 checkNotNull(file, "no file defined, can not persist!");
                 final File oldFile = new File(file.getCanonicalPath() + ".bak");
 
                 if (entry.isExists()) {
-                    checkState(file.exists(), "File %s should exist!", file.getCanonicalPath());
+                    checkState(file.exists(), "'%s' should exist!", file.getCanonicalPath());
                     // unlink an old file if necessary
                     if (oldFile.exists()) {
                         checkState(oldFile.delete(), "Could not delete '%s'", file.getCanonicalPath());
@@ -166,7 +171,7 @@ public class PropertyCache
                 OutputStream stream = null;
                 try {
                     stream = closer.register(new FileOutputStream(newFile));
-                    entry.getProps().store(stream, "created by property-helper-maven-plugin");
+                    entry.store(stream, "created by property-helper-maven-plugin");
                 }
                 finally {
                     closer.close();
@@ -187,27 +192,85 @@ public class PropertyCache
         }
     }
 
-    public static class PropertyCacheEntry
+    public static class ValueCacheEntry
     {
-        private final Properties props;
+        private final Map<String, String> values = new HashMap<>();
 
         private final boolean exists;
 
         private boolean create;
 
-        PropertyCacheEntry(@Nonnull final Properties props,
+        private boolean dirty = false;
+
+        ValueCacheEntry(@Nonnull final Properties props,
                                final boolean exists,
                                final boolean create)
         {
-            checkNotNull(props, "Properties element can not be null!");
-            this.props = props;
+            checkNotNull(props, "props is null");
+
+            values.putAll(Maps.fromProperties(props));
+
             this.exists = exists;
             this.create = create;
         }
 
-        public Properties getProps()
+        public void store(final OutputStream out, final String comment) throws IOException
         {
-            return props;
+            final Properties p = new Properties();
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                p.setProperty(entry.getKey(), entry.getValue());
+            }
+            p.store(out, comment);
+        }
+
+        public boolean isDirty()
+        {
+            return dirty;
+        }
+
+        public void dirty()
+        {
+            this.dirty = true;
+        }
+
+        public Map<String, String> getValues()
+        {
+            return new ForwardingMap<String, String>() {
+                @Override
+                protected Map<String, String> delegate()
+                {
+                    return values;
+                }
+
+                @Override
+                public String remove(Object object) {
+                    dirty();
+                    return super.remove(object);
+                }
+
+                @Override
+                public void clear() {
+                    dirty();
+                    super.clear();
+                }
+
+                @Override
+                public String put(String key, String value) {
+                    final String oldValue = super.put(key, value);
+                    if (!Objects.equal(value, oldValue)) {
+                        dirty();
+                    }
+                    return oldValue;
+                }
+
+                @Override
+                public void putAll(Map<? extends String, ? extends String> map) {
+                    dirty();
+                    super.putAll(map);
+                }
+
+
+            };
         }
 
         public boolean isExists()
@@ -223,6 +286,7 @@ public class PropertyCache
         public void doCreate()
         {
             this.create = true;
+            dirty();
         }
 
         @Override
@@ -234,8 +298,9 @@ public class PropertyCache
             if (other == null || other.getClass() != this.getClass()) {
                 return false;
             }
-            PropertyCacheEntry that = (PropertyCacheEntry) other;
-            return Objects.equal(this.props, that.props)
+            ValueCacheEntry that = (ValueCacheEntry) other;
+            return Objects.equal(this.values, that.values)
+                            && Objects.equal(this.dirty, that.dirty)
                             && Objects.equal(this.exists, that.exists)
                             && Objects.equal(this.create, that.create);
         }
@@ -243,16 +308,17 @@ public class PropertyCache
         @Override
         public int hashCode()
         {
-            return Objects.hashCode(props, exists, create);
+            return Objects.hashCode(values, dirty, exists, create);
         }
 
         @Override
         public String toString()
         {
             return Objects.toStringHelper(this)
-                            .add("props", props)
+                            .add("values", values)
                             .add("exists", exists)
                             .add("create", create)
+                            .add("dirty", dirty)
                             .toString();
         }
     }

@@ -20,6 +20,8 @@ import org.basepom.mojo.propertyhelper.beans.UuidDefinition;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
+
 public class TestUuidField
 {
     @Test
@@ -111,8 +113,7 @@ public class TestUuidField
 
         f1.check();
 
-        final PropertyCache propertyCache = new PropertyCache();
-        final ValueProvider provider = propertyCache.findCurrentValue(new Properties(), f1);
+        final ValueProvider provider = ValueCache.findCurrentValueProvider(ImmutableMap.<String, String>of(), f1);
 
         final UuidField uf1 = new UuidField(f1, provider);
         Assert.assertFalse(uf1.getPropertyValue().isPresent());
