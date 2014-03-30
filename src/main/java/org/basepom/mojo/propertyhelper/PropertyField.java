@@ -16,7 +16,6 @@ package org.basepom.mojo.propertyhelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +34,7 @@ public class PropertyField implements PropertyElement
     {
         final ImmutableList.Builder<PropertyElement> result = ImmutableList.builder();
 
-        for (Iterator<String> it = propertyGroup.getPropertyNames(); it.hasNext(); ) {
-            final String name = it.next();
+        for (String name : propertyGroup.getPropertyNames()) {
             final String value = propertyGroup.getPropertyValue(name, values);
             result.add(new PropertyField(name, value));
         }

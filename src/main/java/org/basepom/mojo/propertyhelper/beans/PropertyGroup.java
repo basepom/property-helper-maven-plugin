@@ -15,13 +15,12 @@ package org.basepom.mojo.propertyhelper.beans;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 public class PropertyGroup
@@ -131,9 +130,9 @@ public class PropertyGroup
     {
     }
 
-    public Iterator<String> getPropertyNames()
+    public Iterable<String> getPropertyNames()
     {
-        return Iterators.transform(properties.keySet().iterator(), Functions.toStringFunction());
+        return Iterables.transform(properties.keySet(), Functions.toStringFunction());
     }
 
     public String getPropertyValue(final String propertyName, final Map<String, String> propElements)
