@@ -166,11 +166,17 @@ public class ValueCache
                         checkState(oldFile.delete(), "Could not delete '%s'", file.getCanonicalPath());
                     }
                 }
-                final File newFile = new File(file.getCanonicalPath() + ".new");
+
+                final File folder = file.getParentFile();
+                if (!folder.exists()) {
+                    checkState(folder.mkdirs(), "Could not create folder '%s'", folder.getCanonicalPath());
+                }
+
                 final Closer closer = Closer.create();
-                OutputStream stream = null;
+
+                final File newFile = new File(file.getCanonicalPath() + ".new");
                 try {
-                    stream = closer.register(new FileOutputStream(newFile));
+                    final OutputStream stream = closer.register(new FileOutputStream(newFile));
                     entry.store(stream, "created by property-helper-maven-plugin");
                 }
                 finally {
