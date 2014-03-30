@@ -18,31 +18,31 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+
 import org.basepom.mojo.propertyhelper.beans.DateDefinition;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-
 public class DateField implements PropertyElement
 {
     private final DateDefinition dateDefinition;
     private final ValueProvider valueProvider;
 
-    public static List<DateField> createDates(final PropertyCache propertyCache, final DateDefinition[] dateDefinitions)
+    public static List<DateField> createDates(final ValueCache valueCache, final DateDefinition[] dateDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(dateDefinitions, "dateDefinitions is null");
 
         final ImmutableList.Builder<DateField> result = ImmutableList.builder();
 
         for (DateDefinition dateDefinition : dateDefinitions) {
             dateDefinition.check();
-            final ValueProvider dateValue = propertyCache.getPropertyValue(dateDefinition);
+            final ValueProvider dateValue = valueCache.getValueProvider(dateDefinition);
             final DateField dateField = new DateField(dateDefinition, dateValue);
             result.add(dateField);
         }
@@ -68,37 +68,55 @@ public class DateField implements PropertyElement
                         ? DateTimeZone.forID(dateDefinition.getTimezone().get())
                         : DateTimeZone.getDefault();
 
-        Optional<DateTime> date = getDateTime(valueProvider.getValue(), timeZone);
-
-        if (!date.isPresent() && dateDefinition.getValue().isPresent()) {
-            date = Optional.of(new DateTime(dateDefinition.getValue().get(), timeZone));
-        }
-
-        if (!date.isPresent()) {
-            date = Optional.of(new DateTime(timeZone));
-        }
-
         final Optional<String> format = dateDefinition.getFormat();
-
+        final DateTimeFormatter formatter;
         if (format.isPresent()) {
-            final DateTimeFormatter formatter = DateTimeFormat.forPattern(format.get());
-            return Optional.of(formatter.print(date.get()));
+            formatter = DateTimeFormat.forPattern(format.get());
         }
         else {
-            return Optional.of(date.get().toString());
+            formatter = null;
         }
+
+        DateTime date = getDateTime(valueProvider.getValue(), formatter, timeZone);
+
+        if (date == null && dateDefinition.getValue().isPresent()) {
+            date = new DateTime(dateDefinition.getValue().get(), timeZone);
+        }
+
+        if (date == null) {
+            date = new DateTime(timeZone);
+        }
+
+        final String result;
+        if (formatter != null) {
+            result = formatter.print(date);
+            valueProvider.setValue(result);
+        }
+        else {
+            result = date.toString();
+            valueProvider.setValue(Long.toString(date.getMillis()));
+        }
+
+        return Optional.of(result);
     }
 
-    private Optional<DateTime> getDateTime(final Optional<String> value, final DateTimeZone timeZone)
+    private DateTime getDateTime(final Optional<String> value,
+                                 final DateTimeFormatter formatter,
+                                 final DateTimeZone timeZone)
     {
         if (!value.isPresent()) {
-            return Optional.absent();
+            return null;
         }
+
+        if (formatter != null) {
+            return formatter.parseDateTime(value.get()).withZone(timeZone);
+        }
+
         try {
-            return Optional.of(new DateTime(Long.parseLong(value.get()), timeZone));
+            return new DateTime(Long.parseLong(value.get()), timeZone);
         }
         catch (NumberFormatException nfe) {
-            return Optional.of(new DateTime(value.get(), timeZone));
+            return new DateTime(value.get(), timeZone);
         }
     }
 

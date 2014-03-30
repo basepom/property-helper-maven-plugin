@@ -40,10 +40,10 @@ public abstract class AbstractDefinition<T extends AbstractDefinition<T>>
     private File propertyFile = null;
 
     /** What to do when the property is missing from the file. Field injected by Maven. */
-    private IgnoreWarnFailCreate onMissingFile = IgnoreWarnFailCreate.FAIL;
+    private String onMissingFile = "fail";
 
     /** What to do when the property is missing from the file. Field injected by Maven. */
-    private IgnoreWarnFailCreate onMissingProperty = IgnoreWarnFailCreate.FAIL;
+    private String onMissingProperty = "fail";
 
     /** The initial value for this field. Field injected by Maven. */
     private String initialValue = null;
@@ -135,29 +135,29 @@ public abstract class AbstractDefinition<T extends AbstractDefinition<T>>
 
     public IgnoreWarnFailCreate getOnMissingFile()
     {
-        return onMissingFile;
+        return IgnoreWarnFailCreate.forString(onMissingFile);
     }
 
     @SuppressWarnings("unchecked")
     @VisibleForTesting
     public T setOnMissingFile(final String onMissingFile)
     {
-        checkNotNull(onMissingFile, "onMissingFile is null");
-        this.onMissingFile = IgnoreWarnFailCreate.forString(onMissingFile);
+        IgnoreWarnFailCreate.forString(onMissingFile);
+        this.onMissingFile = onMissingFile;
         return (T) this;
     }
 
     public IgnoreWarnFailCreate getOnMissingProperty()
     {
-        return onMissingProperty;
+        return IgnoreWarnFailCreate.forString(onMissingProperty);
     }
 
     @SuppressWarnings("unchecked")
     @VisibleForTesting
     public T setOnMissingProperty(final String onMissingProperty)
     {
-        checkNotNull(onMissingProperty, "onMissingProperty is null");
-        this.onMissingProperty = IgnoreWarnFailCreate.forString(onMissingProperty);
+        IgnoreWarnFailCreate.forString(onMissingProperty);
+        this.onMissingProperty = onMissingProperty;
         return (T) this;
     }
 

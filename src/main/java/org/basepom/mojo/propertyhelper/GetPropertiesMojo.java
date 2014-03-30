@@ -38,8 +38,9 @@ public final class GetPropertiesMojo extends AbstractPropertyHelperMojo
         loadPropertyElements();
 
         if (persist) {
-            // Now dump the property cache back to the files if necessary.
-            propertyCache.persist();
+            LOG.debug("Persisting value cache");
+            // Now dump the value cache back to the files if necessary.
+            valueCache.persist();
         }
     }
 }

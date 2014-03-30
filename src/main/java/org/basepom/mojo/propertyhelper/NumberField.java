@@ -38,17 +38,17 @@ public class NumberField implements PropertyElement
     private final List<String> elements = Lists.newArrayList();
     private final List<Integer> numberElements = Lists.newArrayList();
 
-    public static List<NumberField> createNumbers(final PropertyCache propertyCache, final NumberDefinition [] numberDefinitions)
+    public static List<NumberField> createNumbers(final ValueCache valueCache, final NumberDefinition [] numberDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(numberDefinitions, "numberDefinitions is null");
 
         final List<NumberField> result = Lists.newArrayList();
 
         for (NumberDefinition numberDefinition : numberDefinitions) {
             numberDefinition.check();
-            final ValueProvider numberValue = propertyCache.getPropertyValue(numberDefinition);
+            final ValueProvider numberValue = valueCache.getValueProvider(numberDefinition);
             final NumberField numberField = new NumberField(numberDefinition, numberValue);
             result.add(numberField);
         }

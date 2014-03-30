@@ -46,7 +46,7 @@ public final class IncrementNumbersMojo extends AbstractPropertyHelperMojo
         }
 
         if (persist) {
-            propertyCache.persist();
+            valueCache.persist();
         }
     }
 }

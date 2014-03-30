@@ -22,27 +22,25 @@ import java.util.UUID;
 
 import org.basepom.mojo.propertyhelper.beans.UuidDefinition;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 public class UuidField implements PropertyElement
 {
-    private final UUID defaultValue;
     private final UuidDefinition uuidDefinition;
     private final ValueProvider valueProvider;
 
-    public static List<UuidField> createUuids(final PropertyCache propertyCache, final UuidDefinition[] uuidDefinitions)
+    public static List<UuidField> createUuids(final ValueCache valueCache, final UuidDefinition[] uuidDefinitions)
         throws IOException
     {
-        checkNotNull(propertyCache, "propertyCache is null");
+        checkNotNull(valueCache, "valueCache is null");
         checkNotNull(uuidDefinitions, "uuidDefinitions is null");
 
         final ImmutableList.Builder<UuidField> result = ImmutableList.builder();
 
         for (UuidDefinition uuidDefinition : uuidDefinitions) {
             uuidDefinition.check();
-            final ValueProvider uuidValue = propertyCache.getPropertyValue(uuidDefinition);
+            final ValueProvider uuidValue = valueCache.getValueProvider(uuidDefinition);
             final UuidField uuidField = new UuidField(uuidDefinition, uuidValue);
             result.add(uuidField);
         }
@@ -52,13 +50,6 @@ public class UuidField implements PropertyElement
 
     public UuidField(final UuidDefinition uuidDefinition, final ValueProvider valueProvider)
     {
-        this(uuidDefinition, valueProvider, UUID.randomUUID());
-    }
-
-    @VisibleForTesting
-    UuidField(final UuidDefinition uuidDefinition, final ValueProvider valueProvider, final UUID defaultValue)
-    {
-        this.defaultValue = checkNotNull(defaultValue, "defaultValue is null");
         this.uuidDefinition = checkNotNull(uuidDefinition, "uuidDefinition is null");
         this.valueProvider = checkNotNull(valueProvider, "valueProvider is null");
     }
@@ -73,18 +64,25 @@ public class UuidField implements PropertyElement
     public Optional<String> getPropertyValue()
     {
         // Only add the value from the provider if it is not null.
-        UUID result = defaultValue;
+        UUID result = null;
         final Optional<String> propValue = valueProvider.getValue();
 
         if (propValue.isPresent()) {
             result = UUID.fromString(propValue.get());
         }
-        else {
+
+        if (result == null) {
             final Optional<UUID> definedValue = uuidDefinition.getValue();
             if (definedValue.isPresent()) {
                 result = definedValue.get();
             }
         }
+
+        if (result == null) {
+            result = UUID.randomUUID();
+        }
+
+        valueProvider.setValue(result.toString());
 
         final Optional<String> format = uuidDefinition.getFormat();
         return Optional.of(format.isPresent() ? format(format.get(), result) : result.toString());

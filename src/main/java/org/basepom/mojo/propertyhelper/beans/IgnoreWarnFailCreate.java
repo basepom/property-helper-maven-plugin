@@ -32,7 +32,7 @@ public enum IgnoreWarnFailCreate
     public static IgnoreWarnFailCreate forString(final String value)
     {
         Preconditions.checkArgument(value != null, "the value can not be null");
-        return valueOf(IgnoreWarnFailCreate.class, value.toUpperCase(Locale.ENGLISH));
+        return Enum.valueOf(IgnoreWarnFailCreate.class, value.toUpperCase(Locale.ENGLISH));
     }
 
     /**

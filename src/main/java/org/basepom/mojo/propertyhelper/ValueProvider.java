@@ -13,6 +13,9 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.base.Optional;
@@ -43,6 +46,52 @@ public interface ValueProvider
         }
     }
 
+    static class StaticValueProvider implements ValueProvider
+    {
+        private String value;
+
+        StaticValueProvider()
+        {
+        }
+
+        @Override
+        public void setValue(final String value)
+        {
+            this.value = value;
+        }
+
+        @Override
+        public Optional<String> getValue()
+        {
+            return Optional.fromNullable(value);
+        }
+    }
+
+    static class MapValueProvider implements ValueProvider
+    {
+        private final Map<String, String> values;
+        private final String valueName;
+
+        MapValueProvider(final Map<String, String> values, final String valueName)
+        {
+            this.valueName = checkNotNull(valueName, "valueName is null");
+            this.values = values;
+        }
+
+        @Override
+        public void setValue(final String value)
+        {
+            checkNotNull(value, "value is null");
+            values.put(valueName, value);
+        }
+
+        @Override
+        public Optional<String> getValue()
+        {
+            return Optional.fromNullable(values.get(valueName));
+        }
+    }
+
     static class PropertyProvider implements ValueProvider
     {
         private final Properties props;
@@ -51,12 +100,13 @@ public interface ValueProvider
         PropertyProvider(final Properties props, final String propertyName)
         {
             this.props = props;
-            this.propertyName = propertyName;
+            this.propertyName = checkNotNull(propertyName, "propertyName is null");
         }
 
         @Override
         public void setValue(final String value)
         {
+            checkNotNull(value, "value is null");
             props.setProperty(propertyName, value);
         }
 
