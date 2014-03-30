@@ -68,7 +68,16 @@ public class DateField implements PropertyElement
                         ? DateTimeZone.forID(dateDefinition.getTimezone().get())
                         : DateTimeZone.getDefault();
 
-        DateTime date = getDateTime(valueProvider.getValue(), timeZone);
+        final Optional<String> format = dateDefinition.getFormat();
+        final DateTimeFormatter formatter;
+        if (format.isPresent()) {
+            formatter = DateTimeFormat.forPattern(format.get());
+        }
+        else {
+            formatter = null;
+        }
+
+        DateTime date = getDateTime(valueProvider.getValue(), formatter, timeZone);
 
         if (date == null && dateDefinition.getValue().isPresent()) {
             date = new DateTime(dateDefinition.getValue().get(), timeZone);
@@ -78,26 +87,31 @@ public class DateField implements PropertyElement
             date = new DateTime(timeZone);
         }
 
-        final Optional<String> format = dateDefinition.getFormat();
-
         final String result;
-        if (format.isPresent()) {
-            final DateTimeFormatter formatter = DateTimeFormat.forPattern(format.get());
+        if (formatter != null) {
             result = formatter.print(date);
+            valueProvider.setValue(result);
         }
         else {
             result = date.toString();
+            valueProvider.setValue(Long.toString(date.getMillis()));
         }
 
-        valueProvider.setValue(result);
         return Optional.of(result);
     }
 
-    private DateTime getDateTime(final Optional<String> value, final DateTimeZone timeZone)
+    private DateTime getDateTime(final Optional<String> value,
+                                 final DateTimeFormatter formatter,
+                                 final DateTimeZone timeZone)
     {
         if (!value.isPresent()) {
             return null;
         }
+
+        if (formatter != null) {
+            return formatter.parseDateTime(value.get()).withZone(timeZone);
+        }
+
         try {
             return new DateTime(Long.parseLong(value.get()), timeZone);
         }

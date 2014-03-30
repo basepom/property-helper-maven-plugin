@@ -56,10 +56,45 @@ public class TestDateField
 
         final long now = System.currentTimeMillis();
         final Properties props = new Properties();
+        final String value = DateTimeFormat.forPattern(format).print(now);
+        props.setProperty("hello", value);
+        final DateField sd1 = new DateField(d1, new ValueProvider.PropertyProvider(props, d1.getPropertyName()));
+
+
+        Assert.assertEquals(value, sd1.getPropertyValue().get());
+    }
+
+    @Test
+    public void testUnformattedLongProperty()
+    {
+        final DateDefinition d1 = new DateDefinition()
+            .setId("hello");
+
+        d1.check();
+
+        final long now = System.currentTimeMillis();
+        final Properties props = new Properties();
         props.setProperty("hello", Long.toString(now));
         final DateField sd1 = new DateField(d1, new ValueProvider.PropertyProvider(props, d1.getPropertyName()));
 
-        final String value = DateTimeFormat.forPattern(format).print(now);
+
+        Assert.assertEquals(new DateTime(now).toString(), sd1.getPropertyValue().get());
+    }
+
+    @Test
+    public void testUnformattedStringProperty()
+    {
+        final DateDefinition d1 = new DateDefinition()
+            .setId("hello");
+
+        d1.check();
+
+        final String value = DateTime.now().toString();
+
+        final Properties props = new Properties();
+        props.setProperty("hello", value);
+        final DateField sd1 = new DateField(d1, new ValueProvider.PropertyProvider(props, d1.getPropertyName()));
+
 
         Assert.assertEquals(value, sd1.getPropertyValue().get());
     }
