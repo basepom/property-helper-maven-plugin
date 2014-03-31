@@ -55,6 +55,16 @@
                                             <value>${os.name}</value>
                                             <transformers>remove_whitespace,lowercase</transformers>
                                         </property>
+                                        <property>
+                                            <name>late_group.os_name</name>
+                                            <value>#{os.name}</value>
+                                            <transformers>remove_whitespace,lowercase</transformers>
+                                        </property>
+                                        <property>
+                                            <name>really_late_group.os_name</name>
+                                            <value>#{really_late_os_name}</value>
+                                            <transformers>remove_whitespace,lowercase</transformers>
+                                        </property>
                                     </properties>
                                 </propertyGroup>
                             </propertyGroups>
@@ -64,6 +74,13 @@
                                     <export>true</export>
                                     <values>
                                         <value>${os.name}</value>
+                                    </values>
+                                    <transformers>remove_whitespace,lowercase</transformers>
+                                </string>
+                                <string>
+                                    <id>really_late_os_name</id>
+                                    <values>
+                                        <value>#{os.name}</value>
                                     </values>
                                     <transformers>remove_whitespace,lowercase</transformers>
                                 </string>

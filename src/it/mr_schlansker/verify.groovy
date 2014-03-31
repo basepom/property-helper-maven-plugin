@@ -14,7 +14,7 @@
 
 import java.util.Locale
 
-def prop_size = 3
+def prop_size = 5
 
 def loadProperties(String fileName) {
   def properties = new Properties()
@@ -38,5 +38,13 @@ assert !transform.equals("xxxx")
 def group_transform = properties.getProperty("group.os_name", "xxxx")
 assert !group_transform.equals("xxxx")
 
+def late_group_transform = properties.getProperty("late_group.os_name", "xxxx")
+assert !late_group_transform.equals("xxxx")
+
+def really_late_group_transform = properties.getProperty("really_late_group.os_name", "xxxx")
+assert !really_late_group_transform.equals("xxxx")
+
 assert transform.equals(orig.replace(" ", "").toLowerCase(Locale.ENGLISH))
 assert transform.equals(group_transform)
+assert transform.equals(late_group_transform)
+assert transform.equals(really_late_group_transform)

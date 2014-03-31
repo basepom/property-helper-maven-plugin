@@ -13,16 +13,18 @@
  */
 package org.basepom.mojo.propertyhelper.beans;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.basepom.mojo.propertyhelper.beans.PropertyDefinition.getNameFunction;
 import static org.basepom.mojo.propertyhelper.beans.PropertyDefinition.getValueFunction;
 
-import static org.basepom.mojo.propertyhelper.beans.PropertyDefinition.getNameFunction;
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import org.basepom.mojo.propertyhelper.InterpolatorFactory;
 import org.basepom.mojo.propertyhelper.TransformerRegistry;
+import org.codehaus.plexus.interpolation.InterpolationException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -49,6 +51,7 @@ public class PropertyGroup
     /** Property definitions in this group. Field injected by Maven. */
     private PropertyDefinition [] properties = new PropertyDefinition[0];
 
+    // Must be noargs c'tor for maven property injection */
     public PropertyGroup()
     {
     }
@@ -132,7 +135,7 @@ public class PropertyGroup
         return ImmutableSet.copyOf(Iterables.transform(Arrays.asList(properties), getNameFunction()));
     }
 
-    public String getPropertyValue(final String propertyName, final Map<String, String> propElements)
+    public String getPropertyValue(final InterpolatorFactory interpolatorFactory, final String propertyName, final Map<String, String> propElements) throws IOException, InterpolationException
     {
         final Map<String, PropertyDefinition> propertyMap = Maps.uniqueIndex(Arrays.asList(properties), getNameFunction());
 
@@ -142,14 +145,7 @@ public class PropertyGroup
 
         final PropertyDefinition propertyDefinition = propertyMap.get(propertyName);
 
-        String propertyValue = propertyDefinition.getValue();
-        for (Map.Entry<String, String> entry : propElements.entrySet()) {
-            final String key = "#{" + entry.getKey() + "}";
-            propertyValue = propertyValue.replace(key, entry.getValue());
-        }
-        // Replace all remaining groups.
-        final String result = propertyValue.replaceAll("\\#\\{.*\\}", "");
-        IgnoreWarnFail.checkState(getOnMissingProperty(), propertyValue.equals(result), "property");
+        final String result = interpolatorFactory.interpolate(propertyDefinition.getValue(), getOnMissingProperty(), propElements);
         return TransformerRegistry.applyTransformers(propertyDefinition.getTransformers(), result);
     }
 }

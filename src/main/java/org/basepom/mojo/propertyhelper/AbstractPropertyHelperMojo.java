@@ -246,7 +246,7 @@ public abstract class AbstractPropertyHelperMojo
 
         if (propertyGroups != null) {
             for (final PropertyGroup propertyGroup : propertyGroups) {
-                final List<PropertyElement> propertyFields = PropertyField.createProperties(values, propertyGroup);
+                final List<PropertyElement> propertyFields = PropertyField.createProperties(project.getModel(), values, propertyGroup);
                 builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<>(propertyGroup, propertyFields));
             }
         }
