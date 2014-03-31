@@ -13,13 +13,19 @@
  */
 package org.basepom.mojo.propertyhelper.beans;
 
+import static org.basepom.mojo.propertyhelper.beans.PropertyDefinition.getValueFunction;
+
+import static org.basepom.mojo.propertyhelper.beans.PropertyDefinition.getNameFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Set;
 
-import com.google.common.base.Functions;
+import org.basepom.mojo.propertyhelper.TransformerRegistry;
+
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
@@ -41,7 +47,7 @@ public class PropertyGroup
     private String onMissingProperty = "fail";
 
     /** Property definitions in this group. Field injected by Maven. */
-    private Properties properties = new Properties();
+    private PropertyDefinition [] properties = new PropertyDefinition[0];
 
     public PropertyGroup()
     {
@@ -106,43 +112,37 @@ public class PropertyGroup
 
     public Map<String, String> getProperties()
     {
-        return ImmutableMap.copyOf(Maps.fromProperties(properties));
-    }
-
-    public PropertyGroup setProperties(final Properties properties)
-    {
-        this.properties = checkNotNull(properties, "properties is null");
-        return this;
+        return ImmutableMap.copyOf(Maps.transformValues(Maps.uniqueIndex(Arrays.asList(properties), getNameFunction()), getValueFunction()));
     }
 
     public PropertyGroup setProperties(final Map<String, String> properties)
     {
         checkNotNull(properties, "properties is null");
-        this.properties = new Properties();
+        this.properties = new PropertyDefinition[properties.size()];
 
+        int i = 0;
         for (Map.Entry<String, String> entry : properties.entrySet()) {
-            this.properties.setProperty(entry.getKey(), entry.getValue());
+            this.properties[i] = new PropertyDefinition(entry.getKey(), entry.getValue());
         }
         return this;
     }
 
-    public void check()
+    public Set<String> getPropertyNames()
     {
-    }
-
-    public Iterable<String> getPropertyNames()
-    {
-        return Iterables.transform(properties.keySet(), Functions.toStringFunction());
+        return ImmutableSet.copyOf(Iterables.transform(Arrays.asList(properties), getNameFunction()));
     }
 
     public String getPropertyValue(final String propertyName, final Map<String, String> propElements)
     {
-        if (!properties.containsKey(propertyName)) {
+        final Map<String, PropertyDefinition> propertyMap = Maps.uniqueIndex(Arrays.asList(properties), getNameFunction());
+
+        if (!propertyMap.keySet().contains(propertyName)) {
             return "";
         }
 
-        String propertyValue = properties.getProperty(propertyName);
+        final PropertyDefinition propertyDefinition = propertyMap.get(propertyName);
 
+        String propertyValue = propertyDefinition.getValue();
         for (Map.Entry<String, String> entry : propElements.entrySet()) {
             final String key = "#{" + entry.getKey() + "}";
             propertyValue = propertyValue.replace(key, entry.getValue());
@@ -150,6 +150,6 @@ public class PropertyGroup
         // Replace all remaining groups.
         final String result = propertyValue.replaceAll("\\#\\{.*\\}", "");
         IgnoreWarnFail.checkState(getOnMissingProperty(), propertyValue.equals(result), "property");
-        return result;
+        return TransformerRegistry.applyTransformers(propertyDefinition.getTransformers(), result);
     }
 }

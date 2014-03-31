@@ -18,14 +18,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-
 import org.basepom.mojo.propertyhelper.beans.DateDefinition;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 public class DateField implements PropertyElement
 {
@@ -87,7 +87,7 @@ public class DateField implements PropertyElement
             date = new DateTime(timeZone);
         }
 
-        final String result;
+        String result;
         if (formatter != null) {
             result = formatter.print(date);
             valueProvider.setValue(result);
@@ -97,7 +97,10 @@ public class DateField implements PropertyElement
             valueProvider.setValue(Long.toString(date.getMillis()));
         }
 
-        return Optional.of(result);
+        if (dateDefinition.getTransformers().isPresent()) {
+            result = TransformerRegistry.applyTransformers(dateDefinition.getTransformers().get(), result);
+        }
+        return Optional.fromNullable(result);
     }
 
     private DateTime getDateTime(final Optional<String> value,
