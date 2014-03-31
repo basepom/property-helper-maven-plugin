@@ -15,8 +15,11 @@ package org.basepom.mojo.propertyhelper.beans;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 import java.io.File;
+
+import org.basepom.mojo.propertyhelper.TransformerRegistry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -51,6 +54,9 @@ public abstract class AbstractDefinition<T extends AbstractDefinition<T>>
     /** Format for this element. Field injected by Maven. */
     private String format = null;
 
+    /** Comma separated list of String transformers. */
+    private String transformers = null;
+
     protected AbstractDefinition()
     {
     }
@@ -79,6 +85,11 @@ public abstract class AbstractDefinition<T extends AbstractDefinition<T>>
     {
         this.skip = skip;
         return (T) this;
+    }
+
+    public Optional<String> getTransformers()
+    {
+        return Optional.fromNullable(transformers);
     }
 
     public Optional<String> getInitialValue()
@@ -159,6 +170,16 @@ public abstract class AbstractDefinition<T extends AbstractDefinition<T>>
         IgnoreWarnFailCreate.forString(onMissingProperty);
         this.onMissingProperty = onMissingProperty;
         return (T) this;
+    }
+
+    public Optional<String> formatResult(final String value)
+    {
+        final Optional<String> format = getFormat();
+        String res = format.isPresent() ? format(format.get(), value) : value;
+
+        res = TransformerRegistry.applyTransformers(transformers, res);
+
+        return Optional.fromNullable(res);
     }
 
     public Optional<String> getFormat()

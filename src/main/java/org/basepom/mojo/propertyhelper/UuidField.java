@@ -14,7 +14,6 @@
 package org.basepom.mojo.propertyhelper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
@@ -83,9 +82,7 @@ public class UuidField implements PropertyElement
         }
 
         valueProvider.setValue(result.toString());
-
-        final Optional<String> format = uuidDefinition.getFormat();
-        return Optional.of(format.isPresent() ? format(format.get(), result) : result.toString());
+        return uuidDefinition.formatResult(result.toString());
     }
 
     @Override

@@ -14,7 +14,6 @@
 package org.basepom.mojo.propertyhelper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
@@ -79,8 +78,7 @@ public class StringField implements PropertyElement
 
         for (String value : values) {
             if (stringDefinition.isBlankIsValid() || (value != null && !value.trim().isEmpty())) {
-                final Optional<String> format = stringDefinition.getFormat();
-                return Optional.fromNullable(format.isPresent() ? format(format.get(), value) : value);
+                return stringDefinition.formatResult(value);
             }
         }
 

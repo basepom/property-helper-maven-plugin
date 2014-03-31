@@ -15,7 +15,6 @@ package org.basepom.mojo.propertyhelper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.List;
@@ -75,8 +74,7 @@ public class NumberField implements PropertyElement
     {
         parse();
         final String value = Joiner.on("").join(elements);
-        final Optional<String> format = numberDefinition.getFormat();
-        return Optional.of(format.isPresent() ? format(format.get(), value) : value);
+        return numberDefinition.formatResult(value);
     }
 
     @Override
