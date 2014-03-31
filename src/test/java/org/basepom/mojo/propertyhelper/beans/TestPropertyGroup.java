@@ -17,16 +17,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.model.Model;
+import org.basepom.mojo.propertyhelper.InterpolatorFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 public class TestPropertyGroup
 {
+    private final InterpolatorFactory interpolatorFactory = new InterpolatorFactory(Optional.<Model>absent());
+
     @Test
-    public void testConstant()
+    public void testConstant() throws Exception
     {
         final Map<String, String> props = ImmutableMap.of("hello", "world");
 
@@ -38,12 +43,12 @@ public class TestPropertyGroup
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("world", propValue);
     }
 
     @Test
-    public void testRenderSingle()
+    public void testRenderSingle() throws Exception
     {
         final Map<String, String> props = ImmutableMap.of("hello", "#{world}");
 
@@ -55,12 +60,12 @@ public class TestPropertyGroup
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", ImmutableMap.of("world", "pizza"));
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", ImmutableMap.of("world", "pizza"));
         Assert.assertEquals("pizza", propValue);
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testRenderEmptyFail()
+    public void testRenderEmptyFail() throws Exception
     {
         final Map<String, String> props = ImmutableMap.of("hello", "#{world}");
 
@@ -72,12 +77,12 @@ public class TestPropertyGroup
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("", propValue);
     }
 
     @Test
-    public void testRenderEmptyOk()
+    public void testRenderEmptyOk() throws Exception
     {
         final Map<String, String> props = ImmutableMap.of("hello", "nice-#{world}-hat");
 
@@ -90,12 +95,49 @@ public class TestPropertyGroup
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", Collections.<String, String> emptyMap());
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", Collections.<String, String> emptyMap());
         Assert.assertEquals("nice--hat", propValue);
     }
 
     @Test
-    public void testRenderDotsAreCool()
+    public void testRenderIsReluctant() throws Exception
+    {
+        final Map<String, String> props = ImmutableMap.of("hello", "nice-#{first}-#{world}-hat");
+
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props)
+            .setOnMissingProperty("ignore");
+
+        final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
+        Assert.assertEquals(1, propNames.size());
+        Assert.assertEquals("hello", propNames.get(0));
+
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", Collections.<String, String> emptyMap());
+        Assert.assertEquals("nice---hat", propValue);
+    }
+
+    @Test
+    public void testRenderFriendOfAFriend() throws Exception
+    {
+        final Map<String, String> props = ImmutableMap.of("hello", "nice-#{whatWorld}-#{world}-hat");
+
+        final PropertyGroup pg = new PropertyGroup()
+            .setId("hello")
+            .setProperties(props)
+            .setOnMissingProperty("ignore");
+
+        final List<String> propNames = Lists.newArrayList(pg.getPropertyNames());
+        Assert.assertEquals(1, propNames.size());
+        Assert.assertEquals("hello", propNames.get(0));
+
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", ImmutableMap.of("whatWorld", "#{first}", "first", "decadent", "world", "rome"));
+        Assert.assertEquals("nice-decadent-rome-hat", propValue);
+    }
+
+
+    @Test
+    public void testRenderDotsAreCool() throws Exception
     {
         final Map<String, String> props = ImmutableMap.of("hello", "nice-#{foo.bar.world}-hat");
 
@@ -108,7 +150,7 @@ public class TestPropertyGroup
         Assert.assertEquals(1, propNames.size());
         Assert.assertEquals("hello", propNames.get(0));
 
-        final String propValue = pg.getPropertyValue("hello", ImmutableMap.of("foo.bar.world", "strange"));
+        final String propValue = pg.getPropertyValue(interpolatorFactory, "hello", ImmutableMap.of("foo.bar.world", "strange"));
         Assert.assertEquals("nice-strange-hat", propValue);
     }
 

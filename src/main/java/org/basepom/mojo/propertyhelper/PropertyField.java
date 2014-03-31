@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.model.Model;
 import org.basepom.mojo.propertyhelper.beans.PropertyGroup;
+import org.codehaus.plexus.interpolation.InterpolationException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -29,13 +31,20 @@ public class PropertyField implements PropertyElement
     private final String propertyName;
     private final String propertyValue;
 
-    public static List<PropertyElement> createProperties(final Map<String, String> values, final PropertyGroup propertyGroup)
-        throws IOException
+    public static List<PropertyElement> createProperties(final Model model, final Map<String, String> values, final PropertyGroup propertyGroup)
+        throws IOException, InterpolationException
     {
-        final ImmutableList.Builder<PropertyElement> result = ImmutableList.builder();
+        checkNotNull(model, "model is null");
+        checkNotNull(values, "values is null");
+        checkNotNull(propertyGroup, "propertyGroup is null");
 
-        for (String name : propertyGroup.getPropertyNames()) {
-            final String value = propertyGroup.getPropertyValue(name, values);
+        final InterpolatorFactory interpolatorFactory = new InterpolatorFactory(Optional.of(model));
+
+        final ImmutableList.Builder<PropertyElement> result = ImmutableList.builder();
+        final Map<String, String> properties = propertyGroup.getProperties();
+
+        for (String name : properties.keySet()) {
+            final String value = propertyGroup.getPropertyValue(interpolatorFactory, name, values);
             result.add(new PropertyField(name, value));
         }
         return result.build();
