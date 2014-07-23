@@ -37,10 +37,11 @@
     </scm>
 
     <properties>
-        <project.build.targetJdk>1.6</project.build.targetJdk>
+        <project.build.targetJdk>1.7</project.build.targetJdk>
         <skip.it>false</skip.it>
         <dep.maven-api.version>3.0</dep.maven-api.version>
         <dep.plexus.version>1.5.5</dep.plexus.version>
+        <dep.kitei-lessio.version>2.0</dep.kitei-lessio.version>
         <dep.kitei-rules.version>2</dep.kitei-rules.version>
         <dep.plugin.plugin.version>3.2</dep.plugin.plugin.version>
         <dep.plugin.surefire.version>2.17</dep.plugin.surefire.version>
@@ -199,8 +200,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
+            <groupId>org.kitei.testing</groupId>
+            <artifactId>kitei-lessio</artifactId>
+            <version>${dep.kitei-lessio.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -270,6 +272,25 @@
                         <rulesets>
                             <ruleset>pmd/kitei.xml</ruleset>
                         </rulesets>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.kitei.testing</groupId>
+                            <artifactId>kitei-lessio</artifactId>
+                            <version>${dep.kitei-lessio.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <argLine>
+                            ${argLine}
+                            -Djava.security.manager=org.kitei.testing.lessio.LessIOSecurityManager
+                            -Dfile.encoding=${project.build.sourceEncoding}
+                        </argLine>
                     </configuration>
                 </plugin>
             </plugins>
@@ -504,44 +525,4 @@
             </plugin>
         </plugins>
     </reporting>
-
-    <profiles>
-        <profile>
-            <id>travis</id>
-            <activation>
-                <property>
-                    <name>env.TRAVIS</name>
-                </property>
-            </activation>
-            <properties>
-                <project.jdk6.home>${env.JAVA_HOME}</project.jdk6.home>
-            </properties>
-        </profile>
-        <profile>
-            <id>cross-compile</id>
-            <activation>
-                <jdk>(1.6,]</jdk>
-            </activation>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <artifactId>maven-compiler-plugin</artifactId>
-                            <configuration>
-                                <compilerArguments children.combine="append">
-                                    <bootclasspath>${project.jdk6.home}/jre/lib/rt.jar:${project.jdk6.home}/jre/lib/jce.jar:${project.jdk6.home}/../classes/classes.jar</bootclasspath>
-                                </compilerArguments>
-                            </configuration>
-                        </plugin>
-                        <plugin>
-                            <artifactId>maven-javadoc-plugin</artifactId>
-                            <configuration>
-                                <bootclasspath>${project.jdk6.home}/jre/lib/rt.jar:${project.jdk6.home}/jre/lib/jce.jar:${project.jdk6.home}/../classes/classes.jar</bootclasspath>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-    </profiles>
 </project>

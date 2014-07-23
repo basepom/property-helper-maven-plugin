@@ -18,12 +18,19 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.File;
 import java.util.AbstractMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.CheckForNull;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.pyx4j.log4j.MavenLogAppender;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,13 +52,6 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.pyx4j.log4j.MavenLogAppender;
 
 /**
  * Base code for all the mojos.
@@ -242,12 +242,12 @@ public abstract class AbstractPropertyHelperMojo
         // Now generate the property groups.
         final ImmutableMap.Builder<String, Map.Entry<PropertyGroup, List<PropertyElement>>> builder = ImmutableMap.builder();
 
-        final Set<String> propertyNames = new HashSet<String>();
+        final Set<String> propertyNames = Sets.newHashSet();
 
         if (propertyGroups != null) {
             for (final PropertyGroup propertyGroup : propertyGroups) {
                 final List<PropertyElement> propertyFields = PropertyField.createProperties(project.getModel(), values, propertyGroup);
-                builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<PropertyGroup, List<PropertyElement>>(propertyGroup, propertyFields));
+                builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<>(propertyGroup, propertyFields));
             }
         }
 

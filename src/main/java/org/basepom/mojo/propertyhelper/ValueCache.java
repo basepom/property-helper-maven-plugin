@@ -13,9 +13,10 @@
  */
 package org.basepom.mojo.propertyhelper;
 
+import static java.lang.String.format;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static java.lang.String.format;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,15 +24,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Nonnull;
-
-import org.basepom.mojo.propertyhelper.beans.AbstractDefinition;
-import org.basepom.mojo.propertyhelper.beans.IgnoreWarnFailCreate;
-import org.basepom.mojo.propertyhelper.util.Log;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -40,6 +36,10 @@ import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 
+import org.basepom.mojo.propertyhelper.beans.AbstractDefinition;
+import org.basepom.mojo.propertyhelper.beans.IgnoreWarnFailCreate;
+import org.basepom.mojo.propertyhelper.util.Log;
+
 public class ValueCache
 {
     private static final Log LOG = Log.findLog();
@@ -47,7 +47,7 @@ public class ValueCache
     /** Cache for values files loaded from disk */
     private Map<File, ValueCacheEntry> valueFiles = Maps.newHashMap();
 
-    private final Map<String, String> ephemeralValues = new HashMap<String, String>();
+    private final Map<String, String> ephemeralValues = Maps.newHashMap();
 
     public ValueProvider getValueProvider(final AbstractDefinition<?> definition)
         throws IOException
@@ -200,7 +200,7 @@ public class ValueCache
 
     public static class ValueCacheEntry
     {
-        private final Map<String, String> values = new HashMap<String, String>();
+        private final Map<String, String> values = Maps.newHashMap();
 
         private final boolean exists;
 

@@ -25,9 +25,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.kitei.testing.lessio.AllowLocalFileAccess;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+@AllowLocalFileAccess(paths= {"*"})
 public class TestPropertyCache
 {
     private ValueCache pc = null;
