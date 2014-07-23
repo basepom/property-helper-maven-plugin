@@ -1,8 +1,13 @@
 language: java
+cache:
+  directories:
+    - $HOME/.m2
 
 jdk:
   - oraclejdk7
   - openjdk7
+  - oraclejdk6
+  - openjdk6
 
 install: mvn -fn -B -DskipTests=true -Dbasepom.check.skip-all=true -Dskip.it=true install
 script:  mvn -B verify
