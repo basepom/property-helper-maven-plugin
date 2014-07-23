@@ -47,7 +47,7 @@ public class ValueCache
     /** Cache for values files loaded from disk */
     private Map<File, ValueCacheEntry> valueFiles = Maps.newHashMap();
 
-    private final Map<String, String> ephemeralValues = new HashMap<>();
+    private final Map<String, String> ephemeralValues = new HashMap<String, String>();
 
     public ValueProvider getValueProvider(final AbstractDefinition<?> definition)
         throws IOException
@@ -200,7 +200,7 @@ public class ValueCache
 
     public static class ValueCacheEntry
     {
-        private final Map<String, String> values = new HashMap<>();
+        private final Map<String, String> values = new HashMap<String, String>();
 
         private final boolean exists;
 

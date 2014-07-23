@@ -20,18 +20,14 @@ import java.util.Properties;
 
 import com.google.common.io.Closer;
 
-import org.basepom.mojo.propertyhelper.ValueCache;
-import org.basepom.mojo.propertyhelper.ValueProvider;
 import org.basepom.mojo.propertyhelper.beans.NumberDefinition;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.kitei.testing.lessio.AllowLocalFileAccess;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@AllowLocalFileAccess(paths= {"*"})
 public class TestPropertyCache
 {
     private ValueCache pc = null;

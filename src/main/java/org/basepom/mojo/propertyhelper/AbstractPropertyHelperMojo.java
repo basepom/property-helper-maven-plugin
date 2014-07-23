@@ -242,12 +242,12 @@ public abstract class AbstractPropertyHelperMojo
         // Now generate the property groups.
         final ImmutableMap.Builder<String, Map.Entry<PropertyGroup, List<PropertyElement>>> builder = ImmutableMap.builder();
 
-        final Set<String> propertyNames = new HashSet<>();
+        final Set<String> propertyNames = new HashSet<String>();
 
         if (propertyGroups != null) {
             for (final PropertyGroup propertyGroup : propertyGroups) {
                 final List<PropertyElement> propertyFields = PropertyField.createProperties(project.getModel(), values, propertyGroup);
-                builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<>(propertyGroup, propertyFields));
+                builder.put(propertyGroup.getId(), new AbstractMap.SimpleImmutableEntry<PropertyGroup, List<PropertyElement>>(propertyGroup, propertyFields));
             }
         }
 
