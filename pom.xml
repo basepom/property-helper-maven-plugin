@@ -169,6 +169,8 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <!-- XXX: don't use dep.guava.version since end users might override it, and newer versions aren't compatible with this ancient version -->
+            <version>16.0.1</version>
         </dependency>
 
         <dependency>
