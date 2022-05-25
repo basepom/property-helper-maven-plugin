@@ -1,6 +1,6 @@
 property-helper-maven-plugin
 ============================
 
-Maven plugin to manipulate properties. 
+Apache Maven plugin to manipulate properties.
 
-[![Build Status](https://travis-ci.org/basepom/property-helper-maven-plugin.svg?branch=master)](https://travis-ci.org/basepom/property-helper-maven-plugin)
+This repository has been archived. The current version (3.0+) of this plugin can be found in the [maven-plugins](https://github.com/basepom/maven-plugins) repository.
